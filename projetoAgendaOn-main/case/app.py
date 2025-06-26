@@ -1,53 +1,72 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session
+import json
+import os
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta'
 
-usuarios = {}
-reservas = []  # Lista temporária de reservas
+reservas = []
+USUARIOS_FILE = 'usuarios.json'
 
+# Funções para carregar e salvar usuários
+def carregar_usuarios():
+    if os.path.exists(USUARIOS_FILE):
+        with open(USUARIOS_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+def salvar_usuarios(usuarios):
+    with open(USUARIOS_FILE, 'w') as f:
+        json.dump(usuarios, f, indent=2)
+
+# Página inicial
 @app.route('/')
 def pagina_inicial():
     return render_template('pageStart.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+# Login: pode usar nome ou email
+@app.route('/login', methods=['POST'])
 def login():
-    mensagem = get_flashed_messages()
-    erro = ""
-    if request.method == 'POST':
-        usuario = request.form['usuario']
-        senha = request.form['senha']
-        if usuario in usuarios and usuarios[usuario] == senha:
-            session['usuario'] = usuario
-            return redirect(url_for('painel_profissional'))
-        else:
-            erro = "Usuário ou senha inválidos."
-    return render_template('login.html', erro=erro, sucesso=mensagem[0] if mensagem else "")
+    usuarios = carregar_usuarios()
+    entrada = request.form['usuario']
+    senha = request.form['senha']
 
-@app.route('/cadastro', methods=['GET', 'POST'])
+    for u in usuarios:
+        if (entrada == u['nome'] or entrada == u['email']) and senha == u['senha']:
+            session['usuario'] = u['nome']
+            return redirect(url_for('painel_profissional'))
+
+    flash("Usuário ou senha inválidos.", "message")  # Corrigido: categoria "message"
+    return redirect(url_for('pagina_inicial') + "?aba=login")  # Corrigido: manter aba de login ativa
+
+# Cadastro
+@app.route('/cadastro', methods=['POST'])
 def cadastro():
-    erro = ""
-    if request.method == 'POST':
-        usuario = request.form['usuario']
-        senha = request.form['senha']
-        if usuario in usuarios:
-            erro = "Usuário já cadastrado."
-        else:
-            usuarios[usuario] = senha
-            flash("Cadastro realizado com sucesso! Faça login.")
-            return redirect(url_for('login'))
-    return render_template('cadastro.html', erro=erro)
+    usuarios = carregar_usuarios()
+    nome = request.form['nome']
+    email = request.form['email']
+    senha = request.form['senha']
+
+    if any(u['nome'] == nome or u['email'] == email for u in usuarios):
+        flash("Usuário ou email já cadastrado.", "message")
+        return redirect(url_for('pagina_inicial') + "?aba=cadastro")
+
+    usuarios.append({'nome': nome, 'email': email, 'senha': senha})
+    salvar_usuarios(usuarios)
+
+    flash("Cadastro realizado com sucesso! Faça login.", "sucesso")
+    return redirect(url_for('pagina_inicial') + "?aba=login")
 
 @app.route('/painel')
 def painel_profissional():
     if 'usuario' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('pagina_inicial'))
     return render_template('painel.html', usuario=session['usuario'])
 
 @app.route('/reserva', methods=['GET', 'POST'])
 def reserva():
     if 'usuario' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('pagina_inicial'))
 
     if request.method == 'POST':
         nome = request.form['nome']
@@ -76,10 +95,16 @@ def reserva():
 @app.route('/reservas')
 def ver_reservas():
     if 'usuario' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('pagina_inicial'))
 
     minhas_reservas = [r for r in reservas if r.get('usuario') == session['usuario']]
     return render_template('lista_reservas.html', reservas=minhas_reservas)
+
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)
+    return redirect(url_for('pagina_inicial') + "?aba=login")
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,111 +1,167 @@
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f0f2f5;
+/* Reset básico */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fdf6f0;
+  color: #5C3A21;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Container centralizado */
 .container {
+  max-width: 600px;
+  margin: 3rem auto;
   padding: 2rem;
 }
 
+/* Cabeçalhos */
+h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #8B5E3C;
+}
+
+/* Formulário */
 form {
-  max-width: 400px;
-  margin: 5rem auto;
+  background: #fff;
   padding: 2rem;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(91, 61, 39, 0.15);
 }
 
-form h2 {
+/* Inputs, selects, botões */
+form input,
+form select,
+form button {
+  width: 100%;
+  padding: 0.9rem;
+  margin: 0.6rem 0 1.2rem;
+  border-radius: 8px;
+  border: 1px solid #D6A77A;
+  font-size: 1rem;
+  background-color: #FFF9F5;
+  color: #5C3A21;
+}
+
+form input:focus,
+form select:focus {
+  outline: none;
+  border-color: #8B5E3C;
+  box-shadow: 0 0 6px rgba(139, 94, 60, 0.4);
+}
+
+/* Labels */
+form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #5C3A21;
+}
+
+/* Botões */
+form button,
+.btn {
+  background-color: #8B5E3C;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+form button:hover,
+.btn:hover {
+  background-color: #5C3A21;
+}
+
+.btn-secondary {
+  background-color: #D6A77A;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background-color: #B47A4B;
+}
+
+/* Mensagens */
+.erro-msg {
+  color: #b00020;
+  font-weight: bold;
   text-align: center;
   margin-bottom: 1rem;
 }
 
-form input {
-  width: 100%;
-  margin: 0.5rem 0;
-  padding: 0.8rem;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-form button {
-  width: 100%;
-  padding: 0.8rem;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  border-radius: 5px;
+.sucesso-msg {
+  color: #4CAF50;
   font-weight: bold;
-  cursor: pointer;
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
-form button:hover {
-  background-color: #0056b3;
+/* Lista de reservas */
+ul {
+  list-style: none;
+  padding: 0;
 }
 
+ul li {
+  background-color: #fff;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border-left: 6px solid #8B5E3C;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(91, 61, 39, 0.1);
+  line-height: 1.5;
+}
+
+/* Links */
 a {
-  color: #007bff;
   text-decoration: none;
+  color: #8B5E3C;
 }
 
 a:hover {
   text-decoration: underline;
 }
 
-.erro-msg {
-  color: #ff4d4d;
-  font-weight: bold;
-  margin-bottom: 1rem;
+/* Espaçamento */
+.text-center {
   text-align: center;
 }
 
-.sucesso-msg {
-  color: #28a745;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-/* Estilo específico para a página de reservas */
-
-form input[type="date"],
-form input[type="time"],
-form input[type="email"] {
-  padding: 0.8rem;
-  width: 100%;
-  margin: 0.5rem 0;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-family: inherit;
-}
-
-form label {
-  font-weight: bold;
+.mt-3 {
   margin-top: 1rem;
-  display: block;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+.mt-4 {
+  margin-top: 1.5rem;
 }
 
-ul li {
-  background: #fff;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.mt-5 {
+  margin-top: 3rem;
 }
 
+/* Responsividade */
+@media (max-width: 600px) {
+  .container {
+    margin: 1rem;
+    padding: 1rem;
+  }
 
-form select {
-  width: 100%;
-  padding: 0.8rem;
-  margin: 0.5rem 0;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-family: inherit;
+  form {
+    padding: 1rem;
+  }
+
+  form input,
+  form select,
+  form button {
+    font-size: 1rem;
+  }
 }

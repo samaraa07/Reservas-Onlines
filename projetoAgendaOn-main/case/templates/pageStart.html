@@ -4,41 +4,166 @@
   <meta charset="UTF-8">
   <title>Página Inicial</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #fdf6f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #5C3A21;
+    }
+
+    .modal-content {
+      background-color: #fff9f5;
+      border-radius: 15px;
+      padding: 2rem;
+      border: none;
+      box-shadow: 0 8px 30px rgba(91, 61, 39, 0.2);
+    }
+
+    .modal-header {
+      border-bottom: none;
+    }
+
+    .modal-title {
+      color: #8B5E3C;
+      font-weight: bold;
+    }
+
+    .nav-tabs .nav-link.active {
+      background-color: #8B5E3C;
+      color: white;
+      border-color: #8B5E3C;
+    }
+
+    .nav-tabs .nav-link {
+      color: #5C3A21;
+    }
+
+    .form-control {
+      border-radius: 8px;
+      border: 1px solid #D6A77A;
+      background-color: #FFF9F5;
+    }
+
+    .btn-brown {
+      background-color: #8B5E3C;
+      color: white;
+      border: none;
+    }
+
+    .btn-brown:hover {
+      background-color: #5C3A21;
+    }
+
+    .title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #8B5E3C;
+    }
+
+    .lead {
+      color: #6e4a33;
+    }
+  </style>
 </head>
-<body>
-  <div class="container">
-    <header class="cabecalho d-flex justify-content-end p-3">
-      <a href="/cadastro" class="btn btn-outline-primary me-2">Cadastre-se</a>
-      <a href="/login" class="btn btn-primary">Login</a>
-    </header>
+<body class="d-flex flex-column align-items-center justify-content-center min-vh-100">
 
-    <main class="conteudo mt-5">
-      <h1 class="text-center mb-4">Bem-vindo ao Sistema</h1>
+  <div class="text-center">
+    <h1 class="title">Bem-vindo ao Sistema de Agendamento</h1>
+    <p class="lead">Facilite sua vida, agende com praticidade e estilo.</p>
 
-      <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <img src="https://via.placeholder.com/800x300" class="d-block w-100" alt="Imagem 1">
-          </div>
-          <div class="carousel-item">
-            <img src="https://via.placeholder.com/800x300" class="d-block w-100" alt="Imagem 2">
-          </div>
-          <div class="carousel-item">
-            <img src="https://via.placeholder.com/800x300" class="d-block w-100" alt="Imagem 3">
+    <button class="btn btn-brown btn-lg mt-4" data-bs-toggle="modal" data-bs-target="#authModal">
+      Entrar / Cadastrar
+    </button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content">
+        <div class="modal-header justify-content-center">
+          <h5 class="modal-title" id="authModalLabel">Acesse sua conta</h5>
+        </div>
+        <div class="modal-body">
+          <ul class="nav nav-tabs justify-content-center mb-3" id="authTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Login</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="cadastro-tab" data-bs-toggle="tab" data-bs-target="#cadastro" type="button" role="tab">Cadastro</button>
+            </li>
+          </ul>
+          <div class="tab-content" id="authTabsContent">
+
+            <!-- Login -->
+            <div class="tab-pane fade show active" id="login" role="tabpanel">
+              {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                  {% if category == "sucesso" %}
+                    <div class="alert alert-success text-center">{{ message }}</div>
+                  {% elif category == "message" %}
+                    <div class="alert alert-warning text-center">{{ message }}</div>
+                  {% endif %}
+                {% endfor %}
+              {% endwith %}
+              <form method="POST" action="/login">
+                <div class="mb-3">
+                  <label for="loginUsuario" class="form-label">Nome ou Email</label>
+                  <input type="text" class="form-control" name="usuario" id="loginUsuario" required>
+                </div>
+                <div class="mb-3">
+                  <label for="loginSenha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" name="senha" id="loginSenha" required>
+                </div>
+                <button type="submit" class="btn btn-brown w-100">Entrar</button>
+              </form>
+            </div>
+
+            <!-- Cadastro -->
+            <div class="tab-pane fade" id="cadastro" role="tabpanel">
+              <form method="POST" action="/cadastro">
+                <div class="mb-3">
+                  <label for="cadastroNome" class="form-label">Nome completo</label>
+                  <input type="text" class="form-control" name="nome" id="cadastroNome" required>
+                </div>
+                <div class="mb-3">
+                  <label for="cadastroEmail" class="form-label">Email</label>
+                  <input type="email" class="form-control" name="email" id="cadastroEmail" required>
+                </div>
+                <div class="mb-3">
+                  <label for="cadastroSenha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" name="senha" id="cadastroSenha" required>
+                </div>
+                <button type="submit" class="btn btn-brown w-100">Cadastrar</button>
+              </form>
+            </div>
+
           </div>
         </div>
-
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon"></span>
-        </button>
-
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
-          <span class="carousel-control-next-icon"></span>
-        </button>
       </div>
-    </main>
+    </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Ativar aba via URL -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    const params = new URLSearchParams(window.location.search);
+    const aba = params.get("aba");
+
+    if (aba === "login" || aba === "cadastro") {
+        const modal = new bootstrap.Modal(document.getElementById('authModal'));
+        modal.show(); // Mostra o modal automaticamente
+
+        const abaLogin = document.getElementById('login-tab');
+        const abaCadastro = document.getElementById('cadastro-tab');
+
+        if (aba === "cadastro" && abaCadastro) {
+        abaCadastro.click();
+        } else if (abaLogin) {
+        abaLogin.click(); // Padrão: aba de login
+        }
+    }
+    </script>
+
 </body>
 </html>
