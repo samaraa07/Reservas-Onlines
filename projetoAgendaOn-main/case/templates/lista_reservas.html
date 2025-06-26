@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Minhas Reservas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center mb-4">Suas Reservas</h2>
+
+    {% if reservas and reservas|length > 0 %}
+      <ul>
+        {% for r in reservas %}
+          <li>
+            <strong>{{ r.nome }}</strong> - {{ r.email }} <br>
+            Tipo: {{ r.tipo }} <br>
+            Data: {{ r.data }} | Hora: {{ r.hora }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Você ainda não fez nenhuma reserva.</p>
+    {% endif %}
+
+    <div class="text-center mt-3">
+      <a href="/painel" class="btn btn-primary">Voltar ao Painel</a>
+    </div>
+  </div>
+</body>
+</html>

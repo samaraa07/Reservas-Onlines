@@ -6,14 +6,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <form method="POST" action="{{ url_for('reserva') }}">
+  <form method="POST">
     <h2>Fazer Reserva</h2>
 
     {% if erro %}
       <p class="erro-msg">{{ erro }}</p>
-    {% endif %}
-    {% if sucesso %}
-      <p class="sucesso-msg">{{ sucesso }}</p>
     {% endif %}
 
     <input type="text" name="nome" placeholder="Seu nome completo" required />
