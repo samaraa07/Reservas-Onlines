@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reserva de Atendimento</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <form method="POST" action="{{ url_for('reserva') }}">
+    <h2>Fazer Reserva</h2>
+
+    {% if erro %}
+      <p class="erro-msg">{{ erro }}</p>
+    {% endif %}
+
+    <label for="nome" class="sr-only">Seu nome completo</label>
+    <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required />
+
+    <label for="tipo">Tipo de Serviço:</label>
+    <select id="tipo" name="tipo" required>
+      <option value="" disabled selected>Selecione...</option>
+      <option value="Cabelereiro">Cabelereiro</option>
+      <option value="Barbeiro">Barbeiro</option>
+      <option value="Manicure">Manicure</option>
+      <option value="Estética">Estética</option>
+      <option value="Depilação">Depilação</option>
+      <option value="Massagem">Massagem</option>
+      <option value="Maquiagem">Maquiagem</option>
+      <option value="Outro">Outro</option>
+    </select>
+
+    <label for="data">Data da Reserva:</label>
+    <input type="date" id="data" name="data" required />
+
+    <label for="hora">Horário da Reserva:</label>
+    <input type="time" id="hora" name="hora" required />
+
+    <button type="submit">Reservar</button>
+
+    <p class="text-center mt-2"><a href="{{ url_for('painel_profissional') }}">Voltar ao Painel</a></p>
+  </form>
+</body>
+</html>
