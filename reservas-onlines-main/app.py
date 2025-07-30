@@ -1,23 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session
 import json
-import os
+import os 
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta'
 
-# Configuração do Flask-Mail
+# ------------- configurando o flask-mail--------------
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'seu_email@gmail.com'     # Substituir
-app.config['MAIL_PASSWORD'] = 'sua_senha_de_app'        # Substituir com senha de app do Gmail
+app.config['MAIL_USERNAME'] = 'email@gmail.com'     
+app.config['MAIL_PASSWORD'] = 'senha'        
 mail = Mail(app)
 
 reservas = []
 USUARIOS_FILE = 'usuarios.json'
 
-# Funções para carregar e salvar usuários
+# ------------------- aqui os usuários são carregados e cadastrados--------
 def carregar_usuarios():
     if os.path.exists(USUARIOS_FILE):
         with open(USUARIOS_FILE, 'r') as f:
@@ -28,33 +28,12 @@ def salvar_usuarios(usuarios):
     with open(USUARIOS_FILE, 'w') as f:
         json.dump(usuarios, f, indent=2)
 
-# Função para enviar email de confirmação
-def enviar_email_confirmacao(destinatario, nome, data, hora, tipo):
-    msg = Message('Confirmação da Sua Reserva',
-                  sender=app.config['MAIL_USERNAME'],
-                  recipients=[destinatario])
-    msg.body = f'''
-Olá {nome},
-
-A sua reserva para "{tipo}" foi confirmada com sucesso!
-
-📅 Data: {data}
-⏰ Hora: {hora}
-
-Obrigado por utilizar o nosso sistema.
-
-Atenciosamente,
-Equipe Reservas Onlines
-'''
-    mail.send(msg)
-    print("✅ Email enviado com sucesso para", destinatario)
-
-# Página inicial
+# ---------------------------------- página inicial
 @app.route('/')
 def pagina_inicial():
     return render_template('pageStart.html')
 
-# Login
+# -------------------------------------- Login
 @app.route('/login', methods=['POST'])
 def login():
     usuarios = carregar_usuarios()
@@ -64,13 +43,13 @@ def login():
     for u in usuarios:
         if (entrada == u['nome'] or entrada == u['email']) and senha == u['senha']:
             session['usuario'] = u['nome']
-            session['email'] = u['email']  # salvar email na sessão
+            session['email'] = u['email']  
             return redirect(url_for('painel_profissional'))
 
     flash("Usuário ou senha inválidos.", "message")
     return redirect(url_for('pagina_inicial') + "?aba=login")
 
-# Cadastro
+# ------------------------------------------- Cadastro
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
     usuarios = carregar_usuarios()
@@ -101,7 +80,7 @@ def reserva():
 
     if request.method == 'POST':
         nome = request.form['nome']
-        email = session.get('email')  # pega da sessão
+        email = session.get('email')  
         data = request.form['data']
         hora = request.form['hora']
         tipo = request.form['tipo']
@@ -118,13 +97,6 @@ def reserva():
             'hora': hora,
             'tipo': tipo
         })
-
-        # Enviar email com tratamento de erro
-        try:
-            enviar_email_confirmacao(email, nome, data, hora, tipo)
-        except Exception as e:
-            print("❌ Erro ao enviar email:", e)
-            flash("Reserva feita, mas o email de confirmação não pôde ser enviado.", "warning")
 
         return redirect(url_for('ver_reservas'))
 
