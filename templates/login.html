@@ -6,18 +6,34 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <form method="POST">
-    <h2>Login</h2>
+  <div id="modal-backdrop" class="modal-backdrop"></div>
+
+  <form method="POST" class="modal-form" id="login-form">
+    <button type="button" class="close-modal-btn" onclick="fecharModal()">✖</button>
+    <h2>Acesse sua conta</h2>
+
     {% if sucesso %}
       <p class="sucesso-msg">{{ sucesso }}</p>
     {% endif %}
     {% if erro %}
       <p class="erro-msg">{{ erro }}</p>
     {% endif %}
+
+    <label>Nome ou Email</label>
     <input type="text" name="usuario" placeholder="Usuário" required />
+
+    <label>Senha</label>
     <input type="password" name="senha" placeholder="Senha" required />
+
     <button type="submit">Entrar</button>
     <p class="text-center mt-2"><a href="/cadastro">Não tem conta? Cadastre-se</a></p>
   </form>
+
+  <script>
+    function fecharModal() {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('modal-backdrop').style.display = 'none';
+    }
+  </script>
 </body>
 </html>

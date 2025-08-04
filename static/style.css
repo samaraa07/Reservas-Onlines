@@ -4,11 +4,6 @@
   box-sizing: border-box;
 }
 
-/* :root{
-  --papel-de-parede: #fdf6f0;
-  --
-} */
-
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #fdf6f0;
@@ -31,7 +26,7 @@ h2 {
   color: #8B5E3C;
 }
 
-/* ----------------------------------------------------- Formulário*/
+/* ----------------------------------------------------- Formulário */
 form {
   background: #fff;
   padding: 2rem;
@@ -39,8 +34,9 @@ form {
   box-shadow: 0 6px 18px rgba(91, 61, 39, 0.15);
 }
 
-
-form input,form select,form button {
+form input,
+form select,
+form button {
   width: 100%;
   padding: 0.9rem;
   margin: 0.6rem 0 1.2rem;
@@ -51,12 +47,12 @@ form input,form select,form button {
   color: #5C3A21;
 }
 
-form input:focus,form select:focus {
+form input:focus,
+form select:focus {
   outline: none;
   border-color: #8B5E3C;
   box-shadow: 0 0 6px rgba(139, 94, 60, 0.4);
 }
-
 
 form label {
   font-weight: bold;
@@ -65,8 +61,8 @@ form label {
   color: #5C3A21;
 }
 
-
-form button,.btn {
+form button,
+.btn {
   background-color: #8B5E3C;
   color: #fff;
   font-weight: bold;
@@ -75,7 +71,8 @@ form button,.btn {
   transition: background-color 0.3s;
 }
 
-form button:hover,.btn:hover {
+form button:hover,
+.btn:hover {
   background-color: #5C3A21;
 }
 
@@ -119,7 +116,6 @@ ul li {
   line-height: 1.5;
 }
 
-
 a {
   text-decoration: none;
   color: #8B5E3C;
@@ -140,13 +136,16 @@ a:hover {
 
 .mt-4 {
   margin-top: 1.5rem;
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 18px;
 }
 
 .mt-5 {
   margin-top: 3rem;
 }
 
-/* ---------------------------------------------- Layout Responsivo*/
+/* ---------------------------------------------- Layout Responsivo */
 @media (max-width: 600px) {
   .container {
     margin: 1rem;
@@ -162,4 +161,77 @@ a:hover {
   form button {
     font-size: 1rem;
   }
+}
+
+/* Estilo do modal */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 5; /* Z-index abaixo do modal */
+}
+
+.modal-form {
+  position: fixed;
+  z-index: 10;
+  background: #f0eae5;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none; /* Inicialmente escondido */
+}
+
+/* Botões de aba */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #8b5e3c;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+  border-radius: 5px;
+  margin: 0 5px; /* Espaçamento entre os botões */
+}
+
+.tab:hover {
+  background: #f0e0d6; /* Fundo ao passar o mouse */
+}
+
+.tab.active {
+  background: #8b5e3c; /* Fundo do botão ativo */
+  color: #fff; /* Cor do texto do botão ativo */
+}
+
+/* Estilo do botão de fechar */
+.close-modal-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px; /* Mantido para alinhamento à direita */
+  background: none;
+  border: none; /* Remover borda */
+  font-size: 26px; /* Aumentar o tamanho */
+  font-weight: bold;
+  color: #8B5E3C; /* Cor marrom */
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.3s; /* Efeito de transição na cor */
+}
+
+.close-modal-btn:hover {
+  color: #7b3e26; /* Cor mais escura ao passar o mouse */
 }

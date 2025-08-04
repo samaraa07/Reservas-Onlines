@@ -1,23 +1,21 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import json
-import os 
-from flask_mail import Mail, Message
+import os
+from flask_mail import Mail
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta'
 
-# ------------- configurando o flask-mail--------------
+# Configurando o flask-mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'email@gmail.com'     
-app.config['MAIL_PASSWORD'] = 'senha'        
+app.config['MAIL_USERNAME'] = 'email@gmail.com'
+app.config['MAIL_PASSWORD'] = 'senha'
 mail = Mail(app)
 
-reservas = []
 USUARIOS_FILE = 'usuarios.json'
 
-# ------------------- aqui os usuários são carregados e cadastrados--------
 def carregar_usuarios():
     if os.path.exists(USUARIOS_FILE):
         with open(USUARIOS_FILE, 'r') as f:
@@ -28,12 +26,10 @@ def salvar_usuarios(usuarios):
     with open(USUARIOS_FILE, 'w') as f:
         json.dump(usuarios, f, indent=2)
 
-# ---------------------------------- página inicial
 @app.route('/')
 def pagina_inicial():
     return render_template('pageStart.html')
 
-# -------------------------------------- Login
 @app.route('/login', methods=['POST'])
 def login():
     usuarios = carregar_usuarios()
@@ -43,13 +39,12 @@ def login():
     for u in usuarios:
         if (entrada == u['nome'] or entrada == u['email']) and senha == u['senha']:
             session['usuario'] = u['nome']
-            session['email'] = u['email']  
+            session['email'] = u['email']
             return redirect(url_for('painel_profissional'))
 
     flash("Usuário ou senha inválidos.", "message")
     return redirect(url_for('pagina_inicial') + "?aba=login")
 
-# ------------------------------------------- Cadastro
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
     usuarios = carregar_usuarios()
@@ -77,38 +72,15 @@ def painel_profissional():
 def reserva():
     if 'usuario' not in session:
         return redirect(url_for('pagina_inicial'))
-
-    if request.method == 'POST':
-        nome = request.form['nome']
-        email = session.get('email')  
-        data = request.form['data']
-        hora = request.form['hora']
-        tipo = request.form['tipo']
-
-        if not nome or not email or not data or not hora or not tipo:
-            erro = "Todos os campos são obrigatórios."
-            return render_template('reservas.html', erro=erro)
-
-        reservas.append({
-            'usuario': session['usuario'],
-            'nome': nome,
-            'email': email,
-            'data': data,
-            'hora': hora,
-            'tipo': tipo
-        })
-
-        return redirect(url_for('ver_reservas'))
-
+    # Lógica de reservas
     return render_template('reservas.html')
 
 @app.route('/reservas')
 def ver_reservas():
     if 'usuario' not in session:
         return redirect(url_for('pagina_inicial'))
-
-    minhas_reservas = [r for r in reservas if r.get('usuario') == session['usuario']]
-    return render_template('lista_reservas.html', reservas=minhas_reservas)
+    # Lógica para mostrar reservas
+    return render_template('lista_reservas.html')
 
 @app.route('/logout')
 def logout():

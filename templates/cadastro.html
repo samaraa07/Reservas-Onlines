@@ -6,18 +6,34 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <form method="POST" action="{{ url_for('cadastro') }}">
+  <div id="modal-backdrop" class="modal-backdrop"></div>
+
+  <form method="POST" action="{{ url_for('cadastro') }}" class="modal-form" id="cadastro-form">
+    <button type="button" class="close-modal-btn" onclick="fecharModal()">✖</button>
     <h2>Cadastro</h2>
+
     {% if erro %}
       <p class="erro-msg">{{ erro }}</p>
     {% endif %}
 
+    <label>Nome de usuário</label>
     <input type="text" name="nome" placeholder="Nome de usuário" required />
+
+    <label>Email</label>
     <input type="email" name="email" placeholder="Email" required />
+
+    <label>Senha</label>
     <input type="password" name="senha" placeholder="Senha" required />
 
     <button type="submit">Cadastrar</button>
     <p class="text-center mt-2"><a href="/?aba=login">Já tem conta? Faça login</a></p>
   </form>
+
+  <script>
+    function fecharModal() {
+      document.getElementById('cadastro-form').style.display = 'none';
+      document.getElementById('modal-backdrop').style.display = 'none';
+    }
+  </script>
 </body>
 </html>

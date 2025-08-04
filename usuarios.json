@@ -53,5 +53,10 @@
     "nome": "lucas",
     "email": "lucas@gmail.com",
     "senha": "123"
+  },
+  {
+    "nome": "Algu\u00e9m",
+    "email": "alguem@gmail.com",
+    "senha": "123"
   }
 ]
