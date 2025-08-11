@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Minhas Reservas</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -26,9 +26,10 @@
       <ul>
         {% for r in reservas %}
           <li>
-            <strong>{{ r.nome }}</strong> - {{ r.email }} <br>
+            <strong>{{ r.usuario }}</strong> - {{ r.email }} <br>
             Tipo: {{ r.tipo }} <br>
-            Data: {{ r.data }} | Hora: {{ r.hora }}
+            Data e Hora: {{ r.data_hora }} <br>
+            Status: <strong>{{ r.status|capitalize }}</strong>
           </li>
         {% endfor %}
       </ul>
@@ -37,8 +38,8 @@
     {% endif %}
 
     <div class="text-center mt-4">
-      <a href="/painel" class="btn btn-marrom d-inline-flex align-items-center gap-2 px-4 py-2">
-        <span class="icon">arrow_back</span> Voltar ao Painel
+      <a href="{{ url_for('painel_profissional') }}" class="btn btn-marrom d-inline-flex align-items-center gap-2 px-4 py-2">
+        <span class="material-symbols-outlined icon">arrow_back</span> Voltar ao Painel
       </a>
     </div>
   </div>
