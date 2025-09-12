@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Início{% endblock %}
+{% block content %}
+  <div class="container">
+    <h1>Bem-vindo ao Sistema de Agendamento do Salão</h1>
+    {% if not user %}
+      <p>Faça login ou cadastre-se para agendar.</p>
+    {% else %}
+      {% if user.perfil == 'cliente' %}
+        <p><a href="{{ url_for('dashboard_cliente') }}">Meu painel</a></p>
+      {% elif user.perfil == 'profissional' %}
+        <p><a href="{{ url_for('dashboard_profissional') }}">Painel profissional</a></p>
+      {% else %}
+        <p><a href="{{ url_for('dashboard_admin') }}">Painel administrativo</a></p>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}

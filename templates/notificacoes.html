@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Notificações{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Notificações</h2>
+    {% if notificacoes %}
+      <ul>
+      {% for n in notificacoes %}
+        <li {% if not n.lida %}class="nao-lida"{% endif %}>
+          {{ n.criado_em.strftime('%Y-%m-%d %H:%M') }} — {{ n.mensagem }}
+          {% if not n.lida %}
+            <a href="{{ url_for('marcar_lida', notif_id=n.id) }}">Marcar como lida</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p>Sem notificações.</p>
+    {% endif %}
+  </div>
+{% endblock %}

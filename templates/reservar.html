@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Reservar{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Fazer Reserva</h2>
+    <form method="post" action="{{ url_for('reservar') }}">
+      <label>Serviço</label>
+      <select name="servico_id" required>
+        <option value="">-- selecione --</option>
+        {% for s in servicos %}
+          <option value="{{ s.id }}">{{ s.nome }} ({{ s.duracao_min }} min)</option>
+        {% endfor %}
+      </select>
+
+      <label>Profissional</label>
+      <select name="profissional_id" required>
+        <option value="">-- selecione --</option>
+        {% for p in profissionais %}
+          <option value="{{ p.id }}">{{ p.user.nome }} — {{ p.especialidades }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Data</label>
+      <input type="date" name="data" required>
+
+      <label>Hora</label>
+      <input type="time" name="hora" required>
+
+      <button type="submit">Enviar pedido de reserva</button>
+    </form>
+  </div>
+{% endblock %}

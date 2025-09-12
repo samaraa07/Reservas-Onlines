@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Painel Admin{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Painel Admin</h2>
+    <h3>Todos os Agendamentos</h3>
+      <ul>
+      {% for a in agendamentos %}
+        <li>
+          {{ a.servico.nome }} — Profissional: {{ a.profissional.user.nome }} — Cliente: {{ a.cliente.user.nome }} — {{ a.data_hora.strftime('%Y-%m-%d %H:%M') }} — <strong>{{ a.status }}</strong>
+          {% if a.status == 'pendente' %}
+            <a href="{{ url_for('confirmar_agendamento', ag_id=a.id) }}">Confirmar</a>
+          {% endif %}
+          <a href="{{ url_for('cancelar_agendamento', ag_id=a.id) }}">Cancelar</a>
+        </li>
+      {% endfor %}
+      </ul>
+  </div>
+{% endblock %}
