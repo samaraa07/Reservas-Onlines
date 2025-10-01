@@ -3,30 +3,99 @@
 {% block content %}
   <div class="container">
     <h2>Fazer Reserva</h2>
-    <form method="post" action="{{ url_for('reservar') }}">
-      <label>Serviço</label>
-      <select name="servico_id" required>
-        <option value="">-- selecione --</option>
-        {% for s in servicos %}
-          <option value="{{ s.id }}">{{ s.nome }} ({{ s.duracao_min }} min)</option>
-        {% endfor %}
-      </select>
 
-      <label>Profissional</label>
-      <select name="profissional_id" required>
-        <option value="">-- selecione --</option>
-        {% for p in profissionais %}
-          <option value="{{ p.id }}">{{ p.user.nome }} — {{ p.especialidades }}</option>
-        {% endfor %}
-      </select>
+    {% if profissionais %}
+      <form method="post" action="{{ url_for('reservar') }}">
+        
+        <label>Profissional</label>
+        <select name="profissional_id" id="profissional_id" required>
+          <option value="">-- selecione --</option>
+          {% for p in profissionais %}
+            <option value="{{ p.id }}">{{ p.user.nome }} — {{ p.especialidades }}</option>
+          {% endfor %}
+        </select>
 
-      <label>Data</label>
-      <input type="date" name="data" required>
+        <label>Serviço</label>
+        <select name="servico_id" id="servico_id" required>
+          <option value="">-- selecione um profissional primeiro --</option>
+        </select>
 
-      <label>Hora</label>
-      <input type="time" name="hora" required>
+        <label>Data</label>
+        <input type="date" name="data" id="data" required>
 
-      <button type="submit">Enviar pedido de reserva</button>
-    </form>
+        <label>Hora</label>
+        <input type="time" name="hora" id="hora" required>
+
+        <div id="horarios_ocupados" style="margin-top:1rem; color: #b33;">
+          <!-- Horários ocupados aparecem aqui -->
+        </div>
+
+        <button type="submit">Enviar pedido de reserva</button>
+      </form>
+    {% else %}
+      <p>Não há profissionais disponíveis no momento para reserva.</p>
+    {% endif %}
   </div>
+
+  <script>
+    // quando escolher o profissional, carregar serviços
+    document.getElementById("profissional_id").addEventListener("change", carregarServicos);
+
+    function carregarServicos() {
+      let profId = document.getElementById("profissional_id").value;
+      let servicoSelect = document.getElementById("servico_id");
+
+      if (!profId) {
+        servicoSelect.innerHTML = "<option value=''>-- selecione um profissional primeiro --</option>";
+        return;
+      }
+
+      fetch(`/api/servicos_por_profissional?profissional_id=${profId}`)
+        .then(resp => resp.json())
+        .then(dados => {
+          servicoSelect.innerHTML = "";
+          if (dados.length > 0) {
+            dados.forEach(s => {
+              let opt = document.createElement("option");
+              opt.value = s.id;
+              opt.textContent = `${s.nome} (${s.duracao} min)`;
+              servicoSelect.appendChild(opt);
+            });
+          } else {
+            servicoSelect.innerHTML = "<option value=''>-- este profissional não tem serviços cadastrados --</option>";
+          }
+        })
+        .catch(err => {
+          servicoSelect.innerHTML = "<option value=''>Erro ao carregar serviços</option>";
+        });
+    }
+
+    // horários ocupados continuam iguais
+    document.getElementById("data").addEventListener("change", carregarHorarios);
+    document.getElementById("profissional_id").addEventListener("change", carregarHorarios);
+
+    function carregarHorarios() {
+      let profId = document.getElementById("profissional_id").value;
+      let data = document.getElementById("data").value;
+      let box = document.getElementById("horarios_ocupados");
+
+      if (!profId || !data) {
+        box.innerHTML = "";
+        return;
+      }
+
+      fetch(`/api/horarios_ocupados?profissional_id=${profId}&data=${data}`)
+        .then(resp => resp.json())
+        .then(dados => {
+          if (dados.length > 0) {
+            box.innerHTML = "<strong>Horários já reservados:</strong> " + dados.join(", ");
+          } else {
+            box.innerHTML = "<em>Todos os horários estão livres nesta data.</em>";
+          }
+        })
+        .catch(err => {
+          box.innerHTML = "<em>Erro ao carregar horários.</em>";
+        });
+    }
+  </script>
 {% endblock %}

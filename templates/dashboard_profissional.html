@@ -2,17 +2,20 @@
 {% block title %}Painel Profissional{% endblock %}
 {% block content %}
   <div class="container">
-    <h2>Painel Profissional</h2>
-    <h3>Seus Agendamentos</h3>
+    <h2>Bem-vindo(a), {{ user.nome }}!</h2>
+    <p>Você está logado como <strong>Profissional</strong>.</p>
+    <p><strong>Especialidade(s):</strong> {{ user.profissional.especialidades }}</p>
+
+    <h3>Seus agendamentos</h3>
     <ul>
-      {% for a in agendamentos %}
+      {% for ag in agendamentos %}
         <li>
-          {{ a.servico.nome }} — Cliente: {{ a.cliente.user.nome }} — {{ a.data_hora.strftime('%Y-%m-%d %H:%M') }} — <strong>{{ a.status }}</strong>
-          {% if a.status == 'pendente' %}
-            <a href="{{ url_for('confirmar_agendamento', ag_id=a.id) }}">Confirmar</a>
-            <a href="{{ url_for('cancelar_agendamento', ag_id=a.id) }}">Cancelar</a>
-          {% endif %}
+          {{ ag.data_hora.strftime('%d/%m/%Y %H:%M') }} – 
+          {{ ag.servico.nome }} 
+          (Cliente: {{ ag.cliente.user.nome }})
         </li>
+      {% else %}
+        <li>Você ainda não possui agendamentos.</li>
       {% endfor %}
     </ul>
   </div>

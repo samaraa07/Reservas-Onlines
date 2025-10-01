@@ -9,13 +9,27 @@
     <header>
       <div class="nav">
         <a href="{{ url_for('index') }}">Início</a>
+        
         {% if user %}
-          <span>Olá, {{ user.nome }} ({{ user.perfil }})</span>
+          <span>
+            Olá, {{ user.nome }} 
+            ({{ user.perfil|capitalize }}
+            {% if user.perfil == 'profissional' %}
+              – {{ user.profissional.especialidades }}
+            {% endif %})
+          </span>
+
+          <!-- Atalhos diferentes por perfil -->
+          {% if user.perfil == 'cliente' %}
+            <a href="{{ url_for('minhas_reservas') }}">Minhas Reservas</a>
+          {% elif user.perfil == 'profissional' %}
+            <a href="{{ url_for('dashboard_profissional') }}">Meus Agendamentos</a>
+          {% elif user.perfil == 'admin' %}
+            <a href="{{ url_for('dashboard_admin') }}">Painel Geral</a>
+          {% endif %}
+
           <a href="{{ url_for('notificacoes') }}">Notificações</a>
           <a href="{{ url_for('logout') }}">Sair</a>
-        {% else %}
-          <a href="{{ url_for('login') }}">Entrar</a>
-          <a href="{{ url_for('register') }}">Cadastrar</a>
         {% endif %}
       </div>
     </header>
@@ -25,7 +39,7 @@
         {% if messages %}
           <ul class="flashes">
           {% for category, message in messages %}
-            <li class="flash {{ category }}">{{ message }}</li>
+            <li class="flash {{ category }}">{{ message|safe }}</li>
           {% endfor %}
           </ul>
         {% endif %}

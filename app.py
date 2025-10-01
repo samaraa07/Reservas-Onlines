@@ -33,17 +33,15 @@ def exige_login(func):
     return wrapper
 
 def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
-    """
-    Retorna True se há conflito (ou seja, horário ocupado).
-    Considera intervalo [inicio, fim)
-    """
+    """Retorna True se há conflito (ou seja, horário ocupado)."""
     fim = inicio + timedelta(minutes=duracao_min)
-    ags = Agendamento.query.filter_by(profissional_id=profissional_id).filter(Agendamento.status != 'cancelado').all()
+    ags = Agendamento.query.filter_by(profissional_id=profissional_id).filter(
+        Agendamento.status != 'cancelado'
+    ).all()
     for a in ags:
         a_inicio = a.data_hora
         a_dur = a.servico.duracao_min if a.servico and a.servico.duracao_min else 30
         a_fim = a_inicio + timedelta(minutes=a_dur)
-        # checar overlap
         if not (fim <= a_inicio or inicio >= a_fim):
             return True
     return False
@@ -56,52 +54,139 @@ def index():
     user = current_user()
     return render_template('index.html', user=user)
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        nome = request.form['nome']
-        email = request.form['email']
-        senha = request.form['senha']
-        perfil = request.form.get('perfil', 'cliente')
-        if User.query.filter_by(email=email).first():
-            flash("Email já cadastrado.", "warning")
-            return redirect(url_for('register'))
-
-        senha_hash = generate_password_hash(senha)
-        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil=perfil)
-        db.session.add(u)
-        db.session.commit()
-
-        if perfil == 'cliente':
-            c = Cliente(contato=request.form.get('contato'), user=u)
-            db.session.add(c)
-        elif perfil == 'profissional':
-            p = Profissional(contato=request.form.get('contato'), especialidades=request.form.get('especialidades',''), user=u)
-            db.session.add(p)
-        db.session.commit()
-
-        flash("Cadastro realizado. Faça login.", "success")
-        return redirect(url_for('login'))
-
-    return render_template('register.html')
-
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         entrada = request.form['email']
         senha = request.form['senha']
         user = User.query.filter_by(email=entrada).first()
-        if not user or not check_password_hash(user.senha_hash, senha):
-            flash("Usuário ou senha inválidos.", "danger")
+
+        if not user:
+            flash("Usuário não encontrado. <a href='/register_cliente'>Não tenho conta, devo me cadastrar?</a>", "danger")
             return redirect(url_for('login'))
+
+        if not check_password_hash(user.senha_hash, senha):
+            flash("Senha incorreta. Tente novamente.", "danger")
+            return redirect(url_for('login'))
+
         session['user_id'] = user.id
+        flash(f"Bem-vindo(a), {user.nome}!", "success")
+
         if user.perfil == 'admin':
             return redirect(url_for('dashboard_admin'))
         elif user.perfil == 'profissional':
             return redirect(url_for('dashboard_profissional'))
         else:
             return redirect(url_for('dashboard_cliente'))
+
     return render_template('login.html')
+
+# -------------------------
+# Cadastro Cliente
+# -------------------------
+@app.route('/register_cliente', methods=['GET', 'POST'])
+def register_cliente():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+
+        if User.query.filter_by(email=email).first():
+            flash("Email já cadastrado. Faça login.", "warning")
+            return redirect(url_for('login'))
+
+        senha_hash = generate_password_hash(senha)
+        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='cliente')
+        db.session.add(u)
+        db.session.commit()
+
+        c = Cliente(user=u)
+        db.session.add(c)
+        db.session.commit()
+
+        flash("Cadastro de cliente realizado com sucesso! Agora faça login.", "success")
+        return redirect(url_for('login'))
+
+    return render_template('register_cliente.html')
+
+# -------------------------
+# Cadastro Profissional
+# -------------------------
+@app.route('/register_profissional', methods=['GET', 'POST'])
+def register_profissional():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+        especialidades = request.form['especialidades']
+
+        if User.query.filter_by(email=email).first():
+            flash("Email já cadastrado. Faça login.", "warning")
+            return redirect(url_for('login'))
+
+        senha_hash = generate_password_hash(senha)
+        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='profissional')
+        db.session.add(u)
+        db.session.commit()
+
+        p = Profissional(especialidades=especialidades, user=u)
+        db.session.add(p)
+        db.session.commit()
+
+        flash("Cadastro de profissional realizado com sucesso! Agora faça login.", "success")
+        return redirect(url_for('login'))
+
+    return render_template('register_profissional.html')
+
+@app.route('/register_admin', methods=['GET', 'POST'])
+def register_admin():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+
+        if User.query.filter_by(email=email).first():
+            flash("Email já cadastrado. Faça login.", "warning")
+            return redirect(url_for('login'))
+
+        senha_hash = generate_password_hash(senha)
+        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='admin')
+        db.session.add(u)
+        db.session.commit()
+
+        flash("Cadastro de administrador realizado com sucesso! Agora faça login.", "success")
+        return redirect(url_for('login'))
+
+    return render_template('register_admin.html')
+
+# -------------------------
+# Cadastro de Serviço (apenas Admin)
+# -------------------------
+@app.route('/register_servico', methods=['GET', 'POST'])
+@exige_login
+def register_servico():
+    u = current_user()
+    if u.perfil != 'admin':
+        flash("Apenas administradores podem cadastrar serviços.", "danger")
+        return redirect(url_for('index'))
+
+    profissionais = Profissional.query.all()
+
+    if request.method == 'POST':
+        nome = request.form['nome']
+        duracao = int(request.form['duracao'])
+        preco = float(request.form['preco'])
+        profissional_id = int(request.form['profissional_id'])
+
+        servico = Servico(nome=nome, duracao_min=duracao, preco=preco, profissional_id=profissional_id)
+        db.session.add(servico)
+        db.session.commit()
+
+        flash("Serviço cadastrado com sucesso!", "success")
+        return redirect(url_for('dashboard_admin'))
+
+    return render_template('register_servico.html', profissionais=profissionais)
+
 
 @app.route('/logout')
 def logout():
@@ -118,7 +203,6 @@ def dashboard_cliente():
     u = current_user()
     if u.perfil != 'cliente':
         return redirect(url_for('index'))
-    cliente = u.cliente
     servicos = Servico.query.all()
     return render_template('dashboard_cliente.html', user=u, servicos=servicos)
 
@@ -138,12 +222,21 @@ def dashboard_admin():
     u = current_user()
     if u.perfil != 'admin':
         return redirect(url_for('index'))
+    
+    profissionais = Profissional.query.all()
+    clientes = Cliente.query.all()
+    servicos = Servico.query.all()
     ags = Agendamento.query.order_by(Agendamento.data_hora.desc()).all()
-    return render_template('dashboard_admin.html', user=u, agendamentos=ags)
+    
+    return render_template(
+        'dashboard_admin.html',
+        user=u,
+        profissionais=profissionais,
+        clientes=clientes,
+        servicos=servicos,
+        agendamentos=ags
+    )
 
-# -------------------------
-# Reservar (cliente)
-# -------------------------
 @app.route('/reservar', methods=['GET', 'POST'])
 @exige_login
 def reservar():
@@ -152,8 +245,11 @@ def reservar():
         flash("Apenas clientes podem criar reservas.", "warning")
         return redirect(url_for('index'))
 
-    servicos = Servico.query.all()
     profissionais = Profissional.query.all()
+
+    if not profissionais:
+        flash("Não há profissionais disponíveis no momento para reserva.", "info")
+        return redirect(url_for('dashboard_cliente'))
 
     if request.method == 'POST':
         servico_id = int(request.form['servico_id'])
@@ -173,7 +269,7 @@ def reservar():
 
         agora = datetime.now()
         if dt < agora:
-            flash("Não é possível agendar para datas/horários passados.", "danger")
+            flash("Não é possível agendar para datas passadas.", "danger")
             return redirect(url_for('reservar'))
 
         servico = Servico.query.get(servico_id)
@@ -182,9 +278,10 @@ def reservar():
             return redirect(url_for('reservar'))
 
         if checar_conflito(profissional_id, dt, servico.duracao_min):
-            flash("Horário indisponível para esse profissional. Escolha outro horário.", "warning")
+            flash("Horário indisponível para esse profissional. Escolha outro.", "warning")
             return redirect(url_for('reservar'))
 
+        # Criar agendamento
         ag = Agendamento(
             cliente_id=u.cliente.id,
             profissional_id=profissional_id,
@@ -195,24 +292,34 @@ def reservar():
         db.session.add(ag)
         db.session.commit()
 
-        prof_user = Profissional.query.get(profissional_id).user
-        notif_prof = Notificacao(user_id=prof_user.id, mensagem=f"Novo pedido de agendamento em {dt.strftime('%Y-%m-%d %H:%M')} para o serviço {servico.nome}.")
-        notif_cliente = Notificacao(user_id=u.id, mensagem=f"Seu pedido de agendamento em {dt.strftime('%Y-%m-%d %H:%M')} foi criado e está pendente.")
-        db.session.add_all([notif_prof, notif_cliente])
-        db.session.commit()
-
         flash("Reserva criada com sucesso e enviada para confirmação.", "success")
         return redirect(url_for('minhas_reservas'))
 
-    return render_template('reservar.html', user=u, servicos=servicos, profissionais=profissionais)
+    return render_template('reservar.html', user=u, profissionais=profissionais)
 
+
+@app.route('/api/servicos_por_profissional')
+@exige_login
+def servicos_por_profissional():
+    prof_id = request.args.get('profissional_id', type=int)
+    if not prof_id:
+        return []
+    servicos = Servico.query.filter_by(profissional_id=prof_id).all()
+    return [{"id": s.id, "nome": s.nome, "duracao": s.duracao_min} for s in servicos]
+    return ocupados
+
+# -------------------------
+# Minhas reservas (cliente)
+# -------------------------
 @app.route('/minhas-reservas')
 @exige_login
 def minhas_reservas():
     u = current_user()
     if u.perfil != 'cliente':
         return redirect(url_for('index'))
+
     ags = Agendamento.query.filter_by(cliente_id=u.cliente.id).order_by(Agendamento.data_hora.desc()).all()
+
     return render_template('minhas_reservas.html', user=u, agendamentos=ags)
 
 # -------------------------
@@ -222,8 +329,15 @@ def minhas_reservas():
 @exige_login
 def notificacoes():
     u = current_user()
-    notifs = Notificacao.query.filter_by(user_id=u.id).order_by(Notificacao.criado_em.desc()).all()
+    filtro = request.args.get("filtro", "todas")
+
+    query = Notificacao.query.filter_by(user_id=u.id).order_by(Notificacao.criado_em.desc())
+    if filtro == "nao_lidas":
+        query = query.filter_by(lida=False)
+
+    notifs = query.all()
     return render_template('notificacoes.html', user=u, notificacoes=notifs)
+
 
 @app.route('/notificacao/ler/<int:notif_id>')
 @exige_login
@@ -233,12 +347,13 @@ def marcar_lida(notif_id):
     if notif.user_id != u.id:
         flash("Ação não permitida.", "danger")
         return redirect(url_for('notificacoes'))
+
     notif.lida = True
     db.session.commit()
     return redirect(url_for('notificacoes'))
 
 # -------------------------
-# Ações de confirma/cancel (admin ou profissional)
+# Ações de confirma/cancel
 # -------------------------
 @app.route('/agendamento/confirmar/<int:ag_id>')
 @exige_login
@@ -249,8 +364,7 @@ def confirmar_agendamento(ag_id):
         flash("Ação não permitida.", "danger")
         return redirect(url_for('index'))
     ag.status = 'confirmado'
-    notif = Notificacao(user_id=ag.cliente.user.id, mensagem=f"Seu agendamento em {ag.data_hora.strftime('%Y-%m-%d %H:%M')} foi confirmado.")
-    db.session.add(notif)
+    db.session.add(Notificacao(user_id=ag.cliente.user.id, mensagem=f"Seu agendamento em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi confirmado."))
     db.session.commit()
     flash("Agendamento confirmado.", "success")
     return redirect(request.referrer or url_for('index'))
@@ -264,11 +378,20 @@ def cancelar_agendamento(ag_id):
         flash("Ação não permitida.", "danger")
         return redirect(url_for('index'))
     ag.status = 'cancelado'
-    notif = Notificacao(user_id=ag.cliente.user.id, mensagem=f"Seu agendamento em {ag.data_hora.strftime('%Y-%m-%d %H:%M')} foi cancelado.")
-    db.session.add(notif)
+    db.session.add(Notificacao(user_id=ag.cliente.user.id, mensagem=f"Seu agendamento em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."))
     db.session.commit()
     flash("Agendamento cancelado.", "info")
     return redirect(request.referrer or url_for('index'))
+
+# -------------------------
+# Fallback
+# -------------------------
+@app.route('/register')
+def register_fallback():
+    flash("Use as páginas corretas de cadastro: Cliente ou Profissional.", "info")
+    return redirect(url_for('index'))
+
+
 
 # -------------------------
 # Run
