@@ -21,11 +21,14 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: var(--cor-fundo);
   color: var(--cor-texto);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-image: url('../imgs/plano_de_fundo(2).jpg');
+  background-repeat: no-repeat;
+  background-size: 100%;
+  background-position: center;
 }
 
 /* =========================
