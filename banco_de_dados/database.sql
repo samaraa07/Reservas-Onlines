@@ -58,3 +58,12 @@ CREATE TABLE `tb_agendamentos` (
     `age_status` ENUM('pendente', 'confirmado', 'cancelado'),
     `age_criacao` DATETIME
 );
+
+SELECT a.age_id, a.age_data_hora, a.age_status, a.age_criacao, 
+       c.cli_nome AS cliente, c.cli_email AS email_cliente, 
+       p.pro_nome AS profissional, p.pro_email AS email_profissional, 
+       s.ser_categoria AS servico, s.ser_descricao, s.ser_preco, s.ser_duracao 
+FROM tb_agendamentos a
+JOIN tb_clientes c ON a.age_cli_id = c.cli_id
+JOIN tb_profissionais p ON a.age_pro_id = p.pro_id
+JOIN tb_servicos s ON a.age_ser_id = s.ser_id;
