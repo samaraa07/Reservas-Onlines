@@ -13,7 +13,7 @@ class User(db.Model):
 
     cliente = db.relationship('Cliente', uselist=False, back_populates='user', cascade='all,delete-orphan')
     profissional = db.relationship('Profissional', uselist=False, back_populates='user', cascade='all,delete-orphan')
-    notificacoes = db.relationship('Notificacao', back_populates='user', cascade='all,delete-orphan')
+    notificacoes = db.relationship('Notificacao', backref='usuario', lazy='dynamic', primaryjoin="User.id == Notificacao.user_id")
 
 class Cliente(db.Model):
     __tablename__ = 'clientes'
@@ -57,10 +57,10 @@ class Agendamento(db.Model):
     servico = db.relationship('Servico')
 
 class Notificacao(db.Model):
-    __tablename__ = 'notificacoes'
+    __tablename__ = 'tb_notificacoes'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    mensagem = db.Column(db.String(1000))
-    lida = db.Column(db.Boolean, default=False)
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column('not_usu_id', db.Integer, db.ForeignKey('tb_usuarios.usu_id'), nullable=False)
+    mensagem = db.Column('not_mansagem', db.String(1000))
+    lida = db.Column('not_lida', db.Boolean, default=False)
+    criado_em = db.Column('not_criado_em', db.DateTime, default=datetime.utcnow)
     user = db.relationship('User', back_populates='notificacoes')

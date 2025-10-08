@@ -292,6 +292,17 @@ def reservar():
         db.session.add(ag)
         db.session.commit()
 
+        profissional = Profissional.query.get(profissional_id)
+        if profissional:
+            reserva_mensagem = f"Novo agendamento Pendente de {u.nome} para {servico.nome} em {dt.strftime('%d/%m/%Y %H:%M')}."
+            notif_prof = Notificacao(
+                user_id = profissional.user.id,
+                mensagem = reserva_mensagem
+            )
+            db.session.add(notif_prof)
+        
+        db.session.commit()
+
         flash("Reserva criada com sucesso e enviada para confirmação.", "success")
         return redirect(url_for('minhas_reservas'))
 
@@ -352,6 +363,8 @@ def marcar_lida(notif_id):
     db.session.commit()
     return redirect(url_for('notificacoes'))
 
+
+
 # -------------------------
 # Ações de confirma/cancel
 # -------------------------
@@ -364,7 +377,14 @@ def confirmar_agendamento(ag_id):
         flash("Ação não permitida.", "danger")
         return redirect(url_for('index'))
     ag.status = 'confirmado'
-    db.session.add(Notificacao(user_id=ag.cliente.user.id, mensagem=f"Seu agendamento em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi confirmado."))
+
+    mensagem_confirmacao = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime ('%d/%m/%Y %H:%M')} foi confirmado!"
+    nova_notif = Notificacao(
+        user_id = ag.cliente.user.id,
+        mensagem = mensagem_confirmacao
+    )
+    db.session.add(nova_notif)
+    
     db.session.commit()
     flash("Agendamento confirmado.", "success")
     return redirect(request.referrer or url_for('index'))
@@ -378,7 +398,14 @@ def cancelar_agendamento(ag_id):
         flash("Ação não permitida.", "danger")
         return redirect(url_for('index'))
     ag.status = 'cancelado'
-    db.session.add(Notificacao(user_id=ag.cliente.user.id, mensagem=f"Seu agendamento em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."))
+
+    cancelamento_mensagem = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."
+    nova_notif = Notificacao(
+        user_id = ag.cliente.user.id,
+        mensagem = cancelamento_mensagem
+    )
+    db.session.add(nova_notif)
+
     db.session.commit()
     flash("Agendamento cancelado.", "info")
     return redirect(request.referrer or url_for('index'))

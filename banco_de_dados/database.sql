@@ -59,6 +59,16 @@ CREATE TABLE `tb_agendamentos` (
     `age_criacao` DATETIME
 );
 
+CREATE TABLE `tb_notificacoes` (
+    not_id INT AUTO_INCREMENT PRIMARY KEY,
+    not_usu_id INT NOT NULL,
+    FOREIGN KEY (not_usu_id) REFERENCES tb_usuarios (usu_id),
+    not_mensagem VARCHAR(500) NOT NULL,
+    not_lida BOOLEAN NOT NULL DEFAULT FALSE,
+    not_criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+);
+
 SELECT a.age_id, a.age_data_hora, a.age_status, a.age_criacao, 
        c.cli_nome AS cliente, c.cli_email AS email_cliente, 
        p.pro_nome AS profissional, p.pro_email AS email_profissional, 
