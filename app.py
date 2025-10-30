@@ -383,10 +383,24 @@ def confirmar_agendamento(ag_id):
         user_id = ag.cliente.user.id,
         mensagem = mensagem_confirmacao
     )
-    db.session.add(nova_notif)
     
-    db.session.commit()
-    flash("Agendamento confirmado.", "success")
+    ag.status = 'confirmado'
+
+    mensagem_confirmacao = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime ('%d/%m/%Y %H:%M')} foi confirmado!"
+    nova_notif = Notificacao(
+        user_id = ag.cliente.user.id,
+        mensagem = mensagem_confirmacao
+    )
+    
+    try:
+        db.session.add(nova_notif)
+        db.session.commit()
+        flash("Agendamento confirmado.", "success")
+    except Exception as e:
+        db.session.rollback()
+        print(f"ERRO AO CRIAR NOTIFICAÇÃO DE CONFIRMAÇÃO: {e}")
+        flash("Agendamento confirmado, mas houve um erro ao enviar a notificação.", "warning")
+        
     return redirect(request.referrer or url_for('index'))
 
 @app.route('/agendamento/cancelar/<int:ag_id>')
@@ -404,10 +418,24 @@ def cancelar_agendamento(ag_id):
         user_id = ag.cliente.user.id,
         mensagem = cancelamento_mensagem
     )
-    db.session.add(nova_notif)
+    
+    ag.status = 'cancelado'
 
-    db.session.commit()
-    flash("Agendamento cancelado.", "info")
+    cancelamento_mensagem = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."
+    nova_notif = Notificacao(
+        user_id = ag.cliente.user.id,
+        mensagem = cancelamento_mensagem
+    )
+
+    try:
+        db.session.add(nova_notif)
+        db.session.commit()
+        flash("Agendamento cancelado.", "info")
+    except Exception as e:
+        db.session.rollback()
+        print(f"ERRO AO CRIAR NOTIFICAÇÃO DE CANCELAMENTO: {e}")
+        flash("Agendamento cancelado, mas houve um erro ao enviar a notificação.", "warning")
+
     return redirect(request.referrer or url_for('index'))
 
 # -------------------------

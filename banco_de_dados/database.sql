@@ -26,6 +26,7 @@ CREATE TABLE `tb_profissionais` (
     `pro_nome` VARCHAR(200),
     `pro_email` VARCHAR(200),
     `pro_contato` VARCHAR(200),
+    `pro_especialidades` VARCHAR(500),
     `pro_horario` DATETIME,
     `pro_usu_id` INT,
     FOREIGN KEY (`pro_usu_id`) REFERENCES `tb_usuarios`(`usu_id`)
@@ -60,12 +61,12 @@ CREATE TABLE `tb_agendamentos` (
 );
 
 CREATE TABLE `tb_notificacoes` (
-    not_id INT AUTO_INCREMENT PRIMARY KEY,
-    not_usu_id INT NOT NULL,
-    FOREIGN KEY (not_usu_id) REFERENCES tb_usuarios (usu_id),
-    not_mensagem VARCHAR(500) NOT NULL,
-    not_lida BOOLEAN NOT NULL DEFAULT FALSE,
-    not_criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    `not_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `not_usu_id` INT NOT NULL,
+    FOREIGN KEY (`not_usu_id`) REFERENCES `tb_usuarios`(`usu_id`),
+    `not_mensagem` VARCHAR(500) NOT NULL,
+    `not_lida` BOOLEAN NOT NULL DEFAULT FALSE,
+    `not_criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 
 );
 
