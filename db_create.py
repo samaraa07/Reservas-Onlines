@@ -5,7 +5,7 @@ app = create_app()
 app.app_context().push()
 
 # Apagar todas as tabelas existentes
-db.drop_all()
+# db.drop_all()
 
 # Criar novamente as tabelas
 db.create_all()
