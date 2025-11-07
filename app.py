@@ -3,16 +3,28 @@ from models import db, User, Cliente, Profissional, Servico, Agendamento, Notifi
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from dateutil import parser
+import os
+
 
 def create_app():
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///salon_reservas.db'
+
+    # Define o diretório base do projeto
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
+    # Caminho do banco de dados dentro da pasta 'banco_de_dados'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'banco_de_dados', 'salon_reservas.db')}"
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'troque_essa_chave_para_producao'
+
     db.init_app(app)
+
     return app
 
+
 app = create_app()
+
 
 # -------------------------
 # Helpers
@@ -23,14 +35,18 @@ def current_user():
         return None
     return User.query.get(uid)
 
+
 def exige_login(func):
     from functools import wraps
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not current_user():
             return redirect(url_for('index'))
         return func(*args, **kwargs)
+
     return wrapper
+
 
 def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
     """Retorna True se há conflito (ou seja, horário ocupado)."""
@@ -46,6 +62,7 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
             return True
     return False
 
+
 # -------------------------
 # Rotas públicas
 # -------------------------
@@ -54,7 +71,8 @@ def index():
     user = current_user()
     return render_template('index.html', user=user)
 
-@app.route('/login', methods=['GET','POST'])
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         entrada = request.form['email']
@@ -80,6 +98,7 @@ def login():
             return redirect(url_for('dashboard_cliente'))
 
     return render_template('login.html')
+
 
 # -------------------------
 # Cadastro Cliente
@@ -108,6 +127,7 @@ def register_cliente():
         return redirect(url_for('login'))
 
     return render_template('register_cliente.html')
+
 
 # -------------------------
 # Cadastro Profissional
@@ -138,6 +158,7 @@ def register_profissional():
 
     return render_template('register_profissional.html')
 
+
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
     if request.method == 'POST':
@@ -158,6 +179,7 @@ def register_admin():
         return redirect(url_for('login'))
 
     return render_template('register_admin.html')
+
 
 # -------------------------
 # Cadastro de Serviço (apenas Admin)
@@ -194,6 +216,7 @@ def logout():
     flash("Deslogado com sucesso.", "info")
     return redirect(url_for('index'))
 
+
 # -------------------------
 # Dashboards
 # -------------------------
@@ -206,6 +229,7 @@ def dashboard_cliente():
     servicos = Servico.query.all()
     return render_template('dashboard_cliente.html', user=u, servicos=servicos)
 
+
 @app.route('/dashboard/profissional')
 @exige_login
 def dashboard_profissional():
@@ -216,18 +240,19 @@ def dashboard_profissional():
     ags = Agendamento.query.filter_by(profissional_id=prof.id).order_by(Agendamento.data_hora.desc()).all()
     return render_template('dashboard_profissional.html', user=u, agendamentos=ags)
 
+
 @app.route('/dashboard/admin')
 @exige_login
 def dashboard_admin():
     u = current_user()
     if u.perfil != 'admin':
         return redirect(url_for('index'))
-    
+
     profissionais = Profissional.query.all()
     clientes = Cliente.query.all()
     servicos = Servico.query.all()
     ags = Agendamento.query.order_by(Agendamento.data_hora.desc()).all()
-    
+
     return render_template(
         'dashboard_admin.html',
         user=u,
@@ -236,6 +261,7 @@ def dashboard_admin():
         servicos=servicos,
         agendamentos=ags
     )
+
 
 @app.route('/reservar', methods=['GET', 'POST'])
 @exige_login
@@ -281,7 +307,6 @@ def reservar():
             flash("Horário indisponível para esse profissional. Escolha outro.", "warning")
             return redirect(url_for('reservar'))
 
-        # Criar agendamento
         ag = Agendamento(
             cliente_id=u.cliente.id,
             profissional_id=profissional_id,
@@ -294,13 +319,10 @@ def reservar():
 
         profissional = Profissional.query.get(profissional_id)
         if profissional:
-            reserva_mensagem = f"Novo agendamento Pendente de {u.nome} para {servico.nome} em {dt.strftime('%d/%m/%Y %H:%M')}."
-            notif_prof = Notificacao(
-                user_id = profissional.user.id,
-                mensagem = reserva_mensagem
-            )
+            reserva_mensagem = f"Novo agendamento pendente de {u.nome} para {servico.nome} em {dt.strftime('%d/%m/%Y %H:%M')}."
+            notif_prof = Notificacao(user_id=profissional.user.id, mensagem=reserva_mensagem)
             db.session.add(notif_prof)
-        
+
         db.session.commit()
 
         flash("Reserva criada com sucesso e enviada para confirmação.", "success")
@@ -317,7 +339,7 @@ def servicos_por_profissional():
         return []
     servicos = Servico.query.filter_by(profissional_id=prof_id).all()
     return [{"id": s.id, "nome": s.nome, "duracao": s.duracao_min} for s in servicos]
-    return ocupados
+
 
 # -------------------------
 # Minhas reservas (cliente)
@@ -330,8 +352,8 @@ def minhas_reservas():
         return redirect(url_for('index'))
 
     ags = Agendamento.query.filter_by(cliente_id=u.cliente.id).order_by(Agendamento.data_hora.desc()).all()
-
     return render_template('minhas_reservas.html', user=u, agendamentos=ags)
+
 
 # -------------------------
 # Notificações
@@ -364,7 +386,6 @@ def marcar_lida(notif_id):
     return redirect(url_for('notificacoes'))
 
 
-
 # -------------------------
 # Ações de confirma/cancel
 # -------------------------
@@ -376,22 +397,12 @@ def confirmar_agendamento(ag_id):
     if not (u.perfil == 'admin' or (u.perfil == 'profissional' and u.profissional.id == ag.profissional_id)):
         flash("Ação não permitida.", "danger")
         return redirect(url_for('index'))
+
     ag.status = 'confirmado'
 
-    mensagem_confirmacao = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime ('%d/%m/%Y %H:%M')} foi confirmado!"
-    nova_notif = Notificacao(
-        user_id = ag.cliente.user.id,
-        mensagem = mensagem_confirmacao
-    )
-    
-    ag.status = 'confirmado'
+    mensagem_confirmacao = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi confirmado!"
+    nova_notif = Notificacao(user_id=ag.cliente.user.id, mensagem=mensagem_confirmacao)
 
-    mensagem_confirmacao = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime ('%d/%m/%Y %H:%M')} foi confirmado!"
-    nova_notif = Notificacao(
-        user_id = ag.cliente.user.id,
-        mensagem = mensagem_confirmacao
-    )
-    
     try:
         db.session.add(nova_notif)
         db.session.commit()
@@ -400,32 +411,27 @@ def confirmar_agendamento(ag_id):
         db.session.rollback()
         print(f"ERRO AO CRIAR NOTIFICAÇÃO DE CONFIRMAÇÃO: {e}")
         flash("Agendamento confirmado, mas houve um erro ao enviar a notificação.", "warning")
-        
+
     return redirect(request.referrer or url_for('index'))
+
 
 @app.route('/agendamento/cancelar/<int:ag_id>')
 @exige_login
 def cancelar_agendamento(ag_id):
     u = current_user()
     ag = Agendamento.query.get_or_404(ag_id)
-    if not (u.perfil == 'admin' or (u.perfil == 'profissional' and u.profissional.id == ag.profissional_id) or (u.perfil == 'cliente' and u.cliente.id == ag.cliente_id)):
+    if not (
+        u.perfil == 'admin'
+        or (u.perfil == 'profissional' and u.profissional.id == ag.profissional_id)
+        or (u.perfil == 'cliente' and u.cliente.id == ag.cliente_id)
+    ):
         flash("Ação não permitida.", "danger")
         return redirect(url_for('index'))
+
     ag.status = 'cancelado'
 
     cancelamento_mensagem = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."
-    nova_notif = Notificacao(
-        user_id = ag.cliente.user.id,
-        mensagem = cancelamento_mensagem
-    )
-    
-    ag.status = 'cancelado'
-
-    cancelamento_mensagem = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."
-    nova_notif = Notificacao(
-        user_id = ag.cliente.user.id,
-        mensagem = cancelamento_mensagem
-    )
+    nova_notif = Notificacao(user_id=ag.cliente.user.id, mensagem=cancelamento_mensagem)
 
     try:
         db.session.add(nova_notif)
@@ -438,6 +444,7 @@ def cancelar_agendamento(ag_id):
 
     return redirect(request.referrer or url_for('index'))
 
+
 # -------------------------
 # Fallback
 # -------------------------
@@ -445,7 +452,6 @@ def cancelar_agendamento(ag_id):
 def register_fallback():
     flash("Use as páginas corretas de cadastro: Cliente ou Profissional.", "info")
     return redirect(url_for('index'))
-
 
 
 # -------------------------
