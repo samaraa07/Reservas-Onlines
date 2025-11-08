@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Painel Profissional{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Bem-vindo(a), {{ user.nome }}!</h2>
+    <p>Você está logado como <strong>Profissional</strong>.</p>
+    <p><strong>Especialidade(s):</strong> {{ user.profissional.especialidades }}</p>
+
+    <h3>Seus agendamentos</h3>
+    <ul>
+      {% for ag in agendamentos %}
+        <li>
+          {{ ag.data_hora.strftime('%d/%m/%Y %H:%M') }} – 
+          {{ ag.servico.nome }} 
+          (Cliente: {{ ag.cliente.user.nome }})
+        </li>
+      {% else %}
+        <li>Você ainda não possui agendamentos.</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}
