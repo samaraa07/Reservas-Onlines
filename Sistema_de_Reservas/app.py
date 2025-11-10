@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Cliente, Profissional, Servico, Agendamento, Notificacao
+from models import db, User, Cliente, Profissional, Servico, Agendamento, Notificacao, Administrador
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from dateutil import parser
@@ -19,7 +19,6 @@ def create_app():
     app.config['SECRET_KEY'] = 'troque_essa_chave_para_producao'
 
     db.init_app(app)
-
     return app
 
 
@@ -44,7 +43,6 @@ def exige_login(func):
         if not current_user():
             return redirect(url_for('index'))
         return func(*args, **kwargs)
-
     return wrapper
 
 
@@ -159,6 +157,9 @@ def register_profissional():
     return render_template('register_profissional.html')
 
 
+# -------------------------
+# Cadastro Administrador
+# -------------------------
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
     if request.method == 'POST':
@@ -171,8 +172,15 @@ def register_admin():
             return redirect(url_for('login'))
 
         senha_hash = generate_password_hash(senha)
-        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='admin')
-        db.session.add(u)
+
+        # Cria o usuário principal
+        user_admin = User(nome=nome, email=email, senha_hash=senha_hash, perfil='admin')
+        db.session.add(user_admin)
+        db.session.commit()
+
+        # Cria também o registro na tabela Administradores
+        admin_sub = Administrador(user_id=user_admin.id, nivel_acesso="geral")
+        db.session.add(admin_sub)
         db.session.commit()
 
         flash("Cadastro de administrador realizado com sucesso! Agora faça login.", "success")
@@ -263,6 +271,9 @@ def dashboard_admin():
     )
 
 
+# -------------------------
+# Reservas
+# -------------------------
 @app.route('/reservar', methods=['GET', 'POST'])
 @exige_login
 def reservar():
@@ -272,7 +283,6 @@ def reservar():
         return redirect(url_for('index'))
 
     profissionais = Profissional.query.all()
-
     if not profissionais:
         flash("Não há profissionais disponíveis no momento para reserva.", "info")
         return redirect(url_for('dashboard_cliente'))
@@ -331,6 +341,9 @@ def reservar():
     return render_template('reservar.html', user=u, profissionais=profissionais)
 
 
+# -------------------------
+# API auxiliar
+# -------------------------
 @app.route('/api/servicos_por_profissional')
 @exige_login
 def servicos_por_profissional():
@@ -387,7 +400,7 @@ def marcar_lida(notif_id):
 
 
 # -------------------------
-# Ações de confirma/cancel
+# Ações confirmar/cancelar agendamento
 # -------------------------
 @app.route('/agendamento/confirmar/<int:ag_id>')
 @exige_login
@@ -444,6 +457,20 @@ def cancelar_agendamento(ag_id):
 
     return redirect(request.referrer or url_for('index'))
 
+
+# -------------------------
+# Painel de Usuários (somente administradores)
+# -------------------------
+@app.route('/admin/usuarios')
+@exige_login
+def painel_usuarios():
+    u = current_user()
+    if u.perfil != 'admin':
+        flash("Apenas administradores podem acessar o painel de usuários.", "danger")
+        return redirect(url_for('index'))
+
+    usuarios = User.query.all()
+    return render_template('painel_usuarios.html', user=u, usuarios=usuarios)
 
 # -------------------------
 # Fallback
