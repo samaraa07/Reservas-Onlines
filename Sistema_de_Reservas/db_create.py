@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from werkzeug.security import generate_password_hash
-from sqlalchemy import text  # 👈 necessário para usar comandos SQL diretos
+from sqlalchemy import text  #necessário para usar comandos SQL diretos
 from models import db, User, Administrador
 
 # ------------------------------------
@@ -10,7 +10,7 @@ from models import db, User, Administrador
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, 'banco_de_dados', 'salon_reservas.db')
 
-print(f"📁 Verificando banco em: {db_path}")
+print(f"Verificando banco em: {db_path}")
 
 # ------------------------------------
 # Configuração do app Flask
@@ -24,14 +24,14 @@ db.init_app(app)
 # Criação e população do banco
 # ------------------------------------
 with app.app_context():
-    print("🧹 Limpando tabelas existentes...")
+    print("Limpando tabelas existentes...")
     if os.path.exists(db_path):
         os.remove(db_path)
 
     db.create_all()
 
     # Criar administradores padrão
-    print("👑 Criando administradores padrão...")
+    print("Criando administradores padrão...")
 
     admins_info = [
         ("Ana Francisca de Araújo Pereira", "anafrancisca@gmail.com", "1234"),
@@ -49,7 +49,7 @@ with app.app_context():
             perfil='admin'
         )
         db.session.add(user)
-        db.session.commit()  # ⚠️ precisa para gerar o usu_id
+        db.session.commit()  #precisa para gerar o usu_id
 
         admin = Administrador(
             user_id=user.id,  # usa o atributo mapeado (usu_id)
@@ -58,18 +58,18 @@ with app.app_context():
         db.session.add(admin)
 
     db.session.commit()
-    print("✅ Administradores padrão criados com sucesso!\n")
+    print("Administradores padrão criados com sucesso!\n")
 
     # ------------------------------------
     # Mostrar tabelas e conteúdo
     # ------------------------------------
-    print("🧱 Tabelas existentes:")
+    print("Tabelas existentes:")
     tabelas = db.session.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
     for t in tabelas:
         print(" -", t[0])
 
     # Listar usuários
-    print("\n👤 Usuários cadastrados:")
+    print("\nUsuários cadastrados:")
     usuarios = User.query.all()
     if usuarios:
         for u in usuarios:
@@ -78,7 +78,7 @@ with app.app_context():
         print("Nenhum usuário encontrado.")
 
     # Listar administradores
-    print("\n👑 Administradores cadastrados:")
+    print("\nAdministradores cadastrados:")
     admins = Administrador.query.all()
     if admins:
         for a in admins:
@@ -86,4 +86,4 @@ with app.app_context():
     else:
         print("Nenhum administrador encontrado.")
 
-    print("\n✅ Banco reinicializado e populado com administradores padrão.")
+    print("\nBanco reinicializado e populado com administradores padrão.")

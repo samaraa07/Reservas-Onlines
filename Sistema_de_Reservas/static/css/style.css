@@ -20,7 +20,7 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins';
   color: var(--cor-texto);
   min-height: 100vh;
   display: flex;
@@ -252,47 +252,6 @@ li a:hover {
   text-decoration: underline;
 }
 
-/* =========================
-   DASHBOARD / GRID
-========================= */
-.dashboard {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* =========================
-   RESPONSIVIDADE
-========================= */
-@media (max-width: 600px) {
-  .container {
-    margin: 1rem;
-    padding: 1rem;
-  }
-
-  form {
-    padding: 1rem;
-  }
-
-  input, select, button {
-    font-size: 0.9rem;
-  }
-
-  .nav {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .nav a {
-    margin: 0.3rem 0;
-  }
-}
 
 /* =========================
    HOME CARDS
@@ -349,3 +308,54 @@ li a:hover {
   color: #fff;
   border-color: var(--cor-destaque);
 }
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  body {
+    background-image: url('../imgs/plano_de_fundo(2).jpg');
+    background-size: cover; 
+    background-position: center center; 
+    background-repeat: no-repeat; 
+    min-height: 100vh;
+  }
+
+}
+
+@media (max-width: 600px) {
+  .container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  form {
+    padding: 1rem;
+  }
+
+  input, select, button {
+    font-size: 0.9rem;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav a {
+    margin: 0.3rem 0;
+  }
+}
+
+
