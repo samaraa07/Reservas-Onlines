@@ -10,6 +10,7 @@
 |   ├──env/
 |   ├──static/
 |   |   ├──css/
+|   |   |   ├──font-poppins.css
 |   |   |   └──style.css
 |   |   └──imgs/
 |   ├──templates/
@@ -39,6 +40,119 @@ Em desuso!
 
 ---
 
+#### Conteúdo do arquivo `Reservas-Onlines/static/css/font-poppins.css`:
+```css
+.poppins-thin {
+  font-family: "Poppins", sans-serif;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.poppins-extralight {
+  font-family: "Poppins", sans-serif;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.poppins-light {
+  font-family: "Poppins", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.poppins-regular {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.poppins-medium {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.poppins-semibold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.poppins-bold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.poppins-extrabold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.poppins-black {
+  font-family: "Poppins", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.poppins-thin-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 100;
+  font-style: italic;
+}
+
+.poppins-extralight-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 200;
+  font-style: italic;
+}
+
+.poppins-light-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.poppins-regular-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.poppins-medium-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.poppins-semibold-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.poppins-bold-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.poppins-extrabold-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-style: italic;
+}
+
+.poppins-black-italic {
+  font-family: "Poppins", sans-serif;
+  font-weight: 900;
+  font-style: italic;
+}
+
+```
+
+---
 
 #### Conteúdo do arquivo `Reservas-Onlines/static/css/style.css`:
 ```css
@@ -64,7 +178,7 @@ Em desuso!
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins';
   color: var(--cor-texto);
   min-height: 100vh;
   display: flex;
@@ -296,47 +410,6 @@ li a:hover {
   text-decoration: underline;
 }
 
-/* =========================
-   DASHBOARD / GRID
-========================= */
-.dashboard {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* =========================
-   RESPONSIVIDADE
-========================= */
-@media (max-width: 600px) {
-  .container {
-    margin: 1rem;
-    padding: 1rem;
-  }
-
-  form {
-    padding: 1rem;
-  }
-
-  input, select, button {
-    font-size: 0.9rem;
-  }
-
-  .nav {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .nav a {
-    margin: 0.3rem 0;
-  }
-}
 
 /* =========================
    HOME CARDS
@@ -394,6 +467,54 @@ li a:hover {
   border-color: var(--cor-destaque);
 }
 
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  body {
+    background-image: url('../imgs/plano_de_fundo(2).jpg');
+    background-size: cover; 
+    background-position: center center; 
+    background-repeat: no-repeat; 
+    min-height: 100vh;
+  }
+
+}
+
+@media (max-width: 600px) {
+  .container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  form {
+    padding: 1rem;
+  }
+
+  input, select, button {
+    font-size: 0.9rem;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav a {
+    margin: 0.3rem 0;
+  }
+}
 ```
 
 ---
@@ -405,6 +526,10 @@ li a:hover {
   <head>
     <meta charset="utf-8">
     <title>{% block title %}Salão{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   </head>
   <body>
@@ -689,6 +814,66 @@ li a:hover {
 
 ---
 
+#### Conteúdo do arquivo `Reservas-Onlines/templates/painel_usuarios.html`:
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Usuários</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <h2 class="mb-4 text-center text-dark">Painel de Usuários</h2>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Perfil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.nome }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                {% if u.perfil == 'admin' %}
+                                    <span class="badge bg-danger">Administrador</span>
+                                {% elif u.perfil == 'profissional' %}
+                                    <span class="badge bg-primary">Profissional</span>
+                                {% else %}
+                                    <span class="badge bg-success">Cliente</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('dashboard_admin') }}" class="btn btn-secondary">⬅ Voltar ao Painel Admin</a>
+        </div>
+    </div>
+
+</body>
+</html>
+
+```
+
+---
+
 #### Conteúdo do arquivo `Reservas-Onlines/templates/register_admin.html`:
 ```html
 {% extends "base.html" %}
@@ -892,7 +1077,7 @@ li a:hover {
 #### Conteúdo do arquivo `Reservas-Onlines/app.py`:
 ```py
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Cliente, Profissional, Servico, Agendamento, Notificacao
+from models import db, User, Cliente, Profissional, Servico, Agendamento, Notificacao, Administrador
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from dateutil import parser
@@ -912,7 +1097,6 @@ def create_app():
     app.config['SECRET_KEY'] = 'troque_essa_chave_para_producao'
 
     db.init_app(app)
-
     return app
 
 
@@ -937,7 +1121,6 @@ def exige_login(func):
         if not current_user():
             return redirect(url_for('index'))
         return func(*args, **kwargs)
-
     return wrapper
 
 
@@ -1052,6 +1235,9 @@ def register_profissional():
     return render_template('register_profissional.html')
 
 
+# -------------------------
+# Cadastro Administrador
+# -------------------------
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
     if request.method == 'POST':
@@ -1064,8 +1250,15 @@ def register_admin():
             return redirect(url_for('login'))
 
         senha_hash = generate_password_hash(senha)
-        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='admin')
-        db.session.add(u)
+
+        # Cria o usuário principal
+        user_admin = User(nome=nome, email=email, senha_hash=senha_hash, perfil='admin')
+        db.session.add(user_admin)
+        db.session.commit()
+
+        # Cria também o registro na tabela Administradores
+        admin_sub = Administrador(user_id=user_admin.id, nivel_acesso="geral")
+        db.session.add(admin_sub)
         db.session.commit()
 
         flash("Cadastro de administrador realizado com sucesso! Agora faça login.", "success")
@@ -1156,6 +1349,9 @@ def dashboard_admin():
     )
 
 
+# -------------------------
+# Reservas
+# -------------------------
 @app.route('/reservar', methods=['GET', 'POST'])
 @exige_login
 def reservar():
@@ -1165,7 +1361,6 @@ def reservar():
         return redirect(url_for('index'))
 
     profissionais = Profissional.query.all()
-
     if not profissionais:
         flash("Não há profissionais disponíveis no momento para reserva.", "info")
         return redirect(url_for('dashboard_cliente'))
@@ -1224,6 +1419,9 @@ def reservar():
     return render_template('reservar.html', user=u, profissionais=profissionais)
 
 
+# -------------------------
+# API auxiliar
+# -------------------------
 @app.route('/api/servicos_por_profissional')
 @exige_login
 def servicos_por_profissional():
@@ -1280,7 +1478,7 @@ def marcar_lida(notif_id):
 
 
 # -------------------------
-# Ações de confirma/cancel
+# Ações confirmar/cancelar agendamento
 # -------------------------
 @app.route('/agendamento/confirmar/<int:ag_id>')
 @exige_login
@@ -1339,6 +1537,20 @@ def cancelar_agendamento(ag_id):
 
 
 # -------------------------
+# Painel de Usuários (somente administradores)
+# -------------------------
+@app.route('/admin/usuarios')
+@exige_login
+def painel_usuarios():
+    u = current_user()
+    if u.perfil != 'admin':
+        flash("Apenas administradores podem acessar o painel de usuários.", "danger")
+        return redirect(url_for('index'))
+
+    usuarios = User.query.all()
+    return render_template('painel_usuarios.html', user=u, usuarios=usuarios)
+
+# -------------------------
 # Fallback
 # -------------------------
 @app.route('/register')
@@ -1359,47 +1571,95 @@ if __name__ == '__main__':
 
 #### Conteúdo do arquivo `Reservas-Onlines/db_create.py`:
 ```py
-from app import create_app
-from models import db, User
+import os
+from flask import Flask
 from werkzeug.security import generate_password_hash
+from sqlalchemy import text  #necessário para usar comandos SQL diretos
+from models import db, User, Administrador
 
-# Inicializa o app Flask e ativa o contexto do banco
-app = create_app()
-app.app_context().push()
+# ------------------------------------
+# Caminho do banco de dados
+# ------------------------------------
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'banco_de_dados', 'salon_reservas.db')
 
-# === Função para criar os administradores padrão ===
-def create_default_admins():
-    default_admins = [
-        {"nome": "Ana Francisca de Araújo Pereira", "email": "anafrancisca@gmail.com", "senha": "1234"},
-        {"nome": "Estela Áurea da Nóbrega Calixto", "email": "estelaaurea@gmail.com", "senha": "2345"},
-        {"nome": "Maria de Jesus Santos Neta", "email": "mariajesus@gmail.com", "senha": "3456"},
-        {"nome": "Samara Fernanda Medeiros da Silva", "email": "samarafernanda@gmail.com", "senha": "4567"},
-        {"nome": "Sthefany Dantas Brito", "email": "sthefdantas@gmail.com", "senha": "5678"},
+print(f"Verificando banco em: {db_path}")
+
+# ------------------------------------
+# Configuração do app Flask
+# ------------------------------------
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+# ------------------------------------
+# Criação e população do banco
+# ------------------------------------
+with app.app_context():
+    print("Limpando tabelas existentes...")
+    if os.path.exists(db_path):
+        os.remove(db_path)
+
+    db.create_all()
+
+    # Criar administradores padrão
+    print("Criando administradores padrão...")
+
+    admins_info = [
+        ("Ana Francisca de Araújo Pereira", "anafrancisca@gmail.com", "1234"),
+        ("Estela Áurea da Nóbrega Calixto", "estelaaurea@gmail.com", "2345"),
+        ("Maria de Jesus Santos Neta", "mariajesus@gmail.com", "3456"),
+        ("Samara Fernanda Medeiros da Silva", "samarafernanda@gmail.com", "4567"),
+        ("Sthefany Dantas Brito", "sthefdantas@gmail.com", "5678"),
     ]
 
-    for adm in default_admins:
-        existente = User.query.filter_by(email=adm["email"]).first()
-        if not existente:
-            novo_admin = User(
-                nome=adm["nome"],
-                email=adm["email"],
-                senha_hash=generate_password_hash(adm["senha"]),
-                perfil="admin"
-            )
-            db.session.add(novo_admin)
+    for nome, email, senha in admins_info:
+        user = User(
+            nome=nome,
+            email=email,
+            senha_hash=generate_password_hash(senha),
+            perfil='admin'
+        )
+        db.session.add(user)
+        db.session.commit()  #precisa para gerar o usu_id
+
+        admin = Administrador(
+            user_id=user.id,  # usa o atributo mapeado (usu_id)
+            nivel_acesso='geral'
+        )
+        db.session.add(admin)
 
     db.session.commit()
-    print("✅ Administradores padrão criados com sucesso (ou já existiam).")
+    print("Administradores padrão criados com sucesso!\n")
 
-# === Reinicialização do banco ===
-# Se quiser apagar tudo antes de recriar, descomente a linha abaixo:
-# db.drop_all()
+    # ------------------------------------
+    # Mostrar tabelas e conteúdo
+    # ------------------------------------
+    print("Tabelas existentes:")
+    tabelas = db.session.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
+    for t in tabelas:
+        print(" -", t[0])
 
-db.create_all()
-create_default_admins()
-db.session.commit()
+    # Listar usuários
+    print("\nUsuários cadastrados:")
+    usuarios = User.query.all()
+    if usuarios:
+        for u in usuarios:
+            print(f"ID: {u.id} | Nome: {u.nome} | Email: {u.email} | Perfil: {u.perfil}")
+    else:
+        print("Nenhum usuário encontrado.")
 
-print("Banco reinicializado e pronto para uso (com administradores padrão).")
+    # Listar administradores
+    print("\nAdministradores cadastrados:")
+    admins = Administrador.query.all()
+    if admins:
+        for a in admins:
+            print(f"Admin ID: {a.id} | Usuário ID: {a.user_id} | Nível: {a.nivel_acesso}")
+    else:
+        print("Nenhum administrador encontrado.")
+
+    print("\nBanco reinicializado e populado com administradores padrão.")
 
 ```
 
@@ -1416,7 +1676,7 @@ class User(db.Model):
     __tablename__ = 'tb_usuarios'
 
     id = db.Column('usu_id', db.Integer, primary_key=True)
-    nome = db.Column('usu_name', db.String(200), nullable=False)
+    nome = db.Column('usu_nome', db.String(200), nullable=False)
     email = db.Column('usu_email', db.String(200), unique=True, nullable=False)
     senha_hash = db.Column('usu_senha', db.String(200), nullable=False)
 
@@ -1427,29 +1687,19 @@ class User(db.Model):
         default='cliente'
     )
 
-    cliente = db.relationship(
-        'Cliente',
-        uselist=False,
-        back_populates='user',
-        cascade='all, delete-orphan',
-        foreign_keys='Cliente.user_id'
-    )
+    cliente = db.relationship('Cliente', uselist=False, back_populates='user', cascade='all, delete-orphan')
+    profissional = db.relationship('Profissional', uselist=False, back_populates='user', cascade='all, delete-orphan')
+    administrador = db.relationship('Administrador', uselist=False, back_populates='user', cascade='all, delete-orphan')
+    notificacoes = db.relationship('Notificacao', back_populates='user', cascade='all, delete-orphan')
 
-    profissional = db.relationship(
-        'Profissional',
-        uselist=False,
-        back_populates='user',
-        cascade='all, delete-orphan',
-        foreign_keys='Profissional.user_id'
-    )
+class Administrador(db.Model):
+    __tablename__ = 'tb_administradores'
 
-    notificacoes = db.relationship(
-        'Notificacao',
-        back_populates='user',
-        lazy='dynamic',
-        cascade='all, delete-orphan'
-    )
+    id = db.Column('adm_id', db.Integer, primary_key=True)
+    user_id = db.Column('adm_usu_id', db.Integer, db.ForeignKey('tb_usuarios.usu_id'), unique=True, nullable=False)
+    nivel_acesso = db.Column('adm_nivel', db.String(100), default='geral')
 
+    user = db.relationship('User', back_populates='administrador')
 
 class Cliente(db.Model):
     __tablename__ = 'tb_clientes'
@@ -1459,12 +1709,7 @@ class Cliente(db.Model):
     contato = db.Column('cli_contato', db.String(200))
 
     user = db.relationship('User', back_populates='cliente')
-    agendamentos = db.relationship(
-        'Agendamento',
-        back_populates='cliente',
-        cascade='all, delete-orphan'
-    )
-
+    agendamentos = db.relationship('Agendamento', back_populates='cliente', cascade='all, delete-orphan')
 
 class Profissional(db.Model):
     __tablename__ = 'tb_profissionais'
@@ -1478,18 +1723,16 @@ class Profissional(db.Model):
     servicos = db.relationship('Servico', back_populates='profissional', cascade='all, delete-orphan')
     agendamentos = db.relationship('Agendamento', back_populates='profissional', cascade='all, delete-orphan')
 
-
 class Servico(db.Model):
     __tablename__ = 'tb_servicos'
 
     id = db.Column('ser_id', db.Integer, primary_key=True)
-    nome = db.Column('ser_categoria', db.String(200), nullable=False)
+    nome = db.Column('ser_nome', db.String(200), nullable=False)
     duracao_min = db.Column('ser_duracao', db.Integer, nullable=False, default=30)
     preco = db.Column('ser_preco', db.Float, nullable=True)
     profissional_id = db.Column('ser_pro_id', db.Integer, db.ForeignKey('tb_profissionais.pro_id'))
 
     profissional = db.relationship('Profissional', back_populates='servicos')
-
 
 class Agendamento(db.Model):
     __tablename__ = 'tb_agendamentos'
@@ -1512,14 +1755,12 @@ class Agendamento(db.Model):
     profissional = db.relationship('Profissional', back_populates='agendamentos')
     servico = db.relationship('Servico')
 
-
 class Notificacao(db.Model):
     __tablename__ = 'tb_notificacoes'
 
     id = db.Column('not_id', db.Integer, primary_key=True)
     user_id = db.Column('not_usu_id', db.Integer, db.ForeignKey('tb_usuarios.usu_id'), nullable=False)
     mensagem = db.Column('not_mensagem', db.String(500), nullable=False)
-
     lida = db.Column('not_lida', db.Boolean, default=False)
     criado_em = db.Column('not_criado_em', db.DateTime, default=datetime.utcnow)
 
