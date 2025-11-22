@@ -1,0 +1,11 @@
+.text-dark {
+    --bs-text-opacity: 1;
+    color: #8b5e3c !important;
+}
+.table thead th {
+    background-color: #8b5e3c;
+    color: white;
+}
+.btn-secondary {
+    --bs-btn-bg: #8b5e3c;
+}

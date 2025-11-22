@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Painel Administrador{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Bem-vindo(a), {{ user.nome }}!</h2>
+    <p>Você está logado como <strong>Administrador</strong>.</p>
+
+    <!-- Adicionando o link de gerenciamento de usuários -->
+    <p>
+      <a href="{{ url_for('painel_usuarios') }}" class="btn btn-info">Gerenciar Usuários</a>
+    </p>
+
+    <h3>Profissionais cadastrados</h3>
+    <ul>
+      {% for p in profissionais %}
+        <li>{{ p.user.nome }} – Especialidade(s): {{ p.especialidades }}</li>
+      {% else %}
+        <li>Nenhum profissional cadastrado.</li>
+      {% endfor %}
+    </ul>
+
+    <h3>Clientes cadastrados</h3>
+    <ul>
+      {% for c in clientes %}
+        <li>{{ c.user.nome }} – Contato: {{ c.contato if c.contato else 'Não informado' }}</li>
+      {% else %}
+        <li>Nenhum cliente cadastrado.</li>
+      {% endfor %}
+    </ul>
+
+    <h3>Serviços cadastrados</h3>
+    <ul>
+      {% for s in servicos %}
+        <li>{{ s.nome }} ({{ s.duracao_min }} min) – Profissional: {{ s.profissional.user.nome }}</li>
+      {% else %}
+        <li>Nenhum serviço cadastrado.</li>
+      {% endfor %}
+    </ul>
+
+    <p>
+      <a href="{{ url_for('register_servico') }}" class="btn">Cadastrar novo serviço</a>
+    </p>
+
+    <h3>Todos os Agendamentos</h3>
+    <ul>
+      {% for ag in agendamentos %}
+        <li>
+          {{ ag.data_hora.strftime('%d/%m/%Y %H:%M') }} – 
+          Serviço: {{ ag.servico.nome }} | 
+          Cliente: {{ ag.cliente.user.nome }} | 
+          Profissional: {{ ag.profissional.user.nome }} 
+          ({{ ag.status }})
+        </li>
+      {% else %}
+        <li>Nenhum agendamento encontrado.</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

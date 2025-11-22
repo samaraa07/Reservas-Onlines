@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Cadastro Profissional{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Cadastro de Profissional</h2>
+    <form method="post" action="{{ url_for('register_profissional') }}">
+      <input type="text" name="nome" placeholder="Nome" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="senha" placeholder="Senha" required>
+      <input type="text" name="especialidades" placeholder="Especialidades (separadas por vírgula)" required>
+      <button type="submit">Cadastrar</button>
+    </form>
+    <p>Já tem conta? <a href="{{ url_for('login') }}">Fazer login</a></p>
+  </div>
+{% endblock %}

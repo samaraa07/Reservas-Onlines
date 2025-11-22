@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Notificações{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Notificações</h2>
+
+    {% if notificacoes %}
+      <div style="margin-bottom:1rem;">
+        <a href="?filtro=nao_lidas" class="btn btn-secundario">Somente não lidas</a>
+        <a href="?filtro=todas" class="btn btn-secundario">Todas</a>
+      </div>
+
+      <ul>
+      {% for n in notificacoes %}
+        <li {% if not n.lida %}class="nao-lida"{% endif %}>
+          {{ n.criado_em.strftime('%d/%m/%Y %H:%M') }} — {{ n.mensagem }}
+          {% if not n.lida %}
+            <a href="{{ url_for('marcar_lida', notif_id=n.id) }}">Marcar como lida</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p>Sem notificações.</p>
+    {% endif %}
+  </div>
+{% endblock %}
