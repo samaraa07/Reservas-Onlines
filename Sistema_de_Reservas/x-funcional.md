@@ -11,6 +11,7 @@
 |   ├──static/
 |   |   ├──css/
 |   |   |   ├──font-poppins.css
+|   |   |   ├──painel_usuarios.css
 |   |   |   └──style.css
 |   |   └──imgs/
 |   ├──templates/
@@ -22,6 +23,7 @@
 |   |   ├──login.html
 |   |   ├──minhas_reservas.html
 |   |   ├──notificacoes.html
+|   |   ├──painel_usuarios.html
 |   |   ├──register_admin.html
 |   |   ├──register_cliente.html
 |   |   ├──register_profissional.html
@@ -34,8 +36,8 @@
 ```
 
 #### Conteúdo do arquivo `Reservas-Onlines/banco_de_dados/database.sql`:
-```
-Em desuso!
+```sql
+-- Em desuso!
 ```
 
 ---
@@ -150,6 +152,23 @@ Em desuso!
   font-style: italic;
 }
 
+```
+
+---
+
+#### Conteúdo do arquivo `Reservas-Onlines/static/css/painal_usuarios.css`:
+```css
+.text-dark {
+    --bs-text-opacity: 1;
+    color: #8b5e3c !important;
+}
+.table thead th {
+    background-color: #8b5e3c;
+    color: white;
+}
+.btn-secondary {
+    --bs-btn-bg: #8b5e3c;
+}
 ```
 
 ---
@@ -515,6 +534,8 @@ li a:hover {
     margin: 0.3rem 0;
   }
 }
+
+
 ```
 
 ---
@@ -523,7 +544,7 @@ li a:hover {
 ```html
 <!doctype html>
 <html lang="pt-BR">
-  <head>
+<head>
     <meta charset="utf-8">
     <title>{% block title %}Salão{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -531,52 +552,52 @@ li a:hover {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  </head>
-  <body>
+</head>
+<body>
     <header>
-      <div class="nav">
-        <a href="{{ url_for('index') }}">Início</a>
-        
-        {% if user %}
-          <span>
-            Olá, {{ user.nome }} 
-            ({{ user.perfil|capitalize }}
-            {% if user.perfil == 'profissional' %}
-              – {{ user.profissional.especialidades }}
-            {% endif %})
-          </span>
+        <div class="nav">
+            <a href="{{ url_for('index') }}">Início</a>
+            
+            {% if user %}
+                <span>
+                    Olá, {{ user.nome }} 
+                    ({{ user.perfil|capitalize }}
+                    {% if user.perfil == 'profissional' %}
+                        – {{ user.profissional.especialidades }}
+                    {% endif %})
+                </span>
 
-          <!-- Atalhos diferentes por perfil -->
-          {% if user.perfil == 'cliente' %}
-            <a href="{{ url_for('minhas_reservas') }}">Minhas Reservas</a>
-          {% elif user.perfil == 'profissional' %}
-            <a href="{{ url_for('dashboard_profissional') }}">Meus Agendamentos</a>
-          {% elif user.perfil == 'admin' %}
-            <a href="{{ url_for('dashboard_admin') }}">Painel Geral</a>
-          {% endif %}
+                <!-- Atalhos diferentes por perfil -->
+                {% if user.perfil == 'cliente' %}
+                    <a href="{{ url_for('minhas_reservas') }}">Minhas Reservas</a>
+                {% elif user.perfil == 'profissional' %}
+                    <a href="{{ url_for('dashboard_profissional') }}">Meus Agendamentos</a>
+                {% elif user.perfil == 'admin' %}
+                    <a href="{{ url_for('dashboard_admin') }}">Painel Geral</a>
+                    <a href="{{ url_for('painel_usuarios') }}">Gerenciar Usuários</a>
+                {% endif %}
 
-          <a href="{{ url_for('notificacoes') }}">Notificações</a>
-          <a href="{{ url_for('logout') }}">Sair</a>
-        {% endif %}
-      </div>
+                <a href="{{ url_for('notificacoes') }}">Notificações</a>
+                <a href="{{ url_for('logout') }}">Sair</a>
+            {% endif %}
+        </div>
     </header>
 
     <main>
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <ul class="flashes">
-          {% for category, message in messages %}
-            <li class="flash {{ category }}">{{ message|safe }}</li>
-          {% endfor %}
-          </ul>
-        {% endif %}
-      {% endwith %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="flash {{ category }}">{{ message|safe }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
 
-      {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
     </main>
-  </body>
+</body>
 </html>
-
 ```
 
 ---
@@ -589,6 +610,11 @@ li a:hover {
   <div class="container">
     <h2>Bem-vindo(a), {{ user.nome }}!</h2>
     <p>Você está logado como <strong>Administrador</strong>.</p>
+
+    <!-- Adicionando o link de gerenciamento de usuários -->
+    <p>
+      <a href="{{ url_for('painel_usuarios') }}" class="btn btn-info">Gerenciar Usuários</a>
+    </p>
 
     <h3>Profissionais cadastrados</h3>
     <ul>
@@ -637,7 +663,6 @@ li a:hover {
     </ul>
   </div>
 {% endblock %}
-
 ```
  
 ---
@@ -823,11 +848,28 @@ li a:hover {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Usuários</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/painel_usuarios.css') }}">
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
     <div class="container py-5">
         <h2 class="mb-4 text-center text-dark">Painel de Usuários</h2>
+
+        <!-- Filtro de Usuários -->
+        <div class="mb-4">
+            <label for="userFilter" class="form-label">Filtrar por Tipo de Usuário:</label>
+            <select id="userFilter" class="form-select" onchange="filterUsers()">
+                <option value="all">Todos</option>
+                <option value="admin">Administradores</option>
+                <option value="profissional">Profissionais</option>
+                <option value="cliente">Clientes</option>
+            </select>
+        </div>
 
         <div class="card shadow-sm">
             <div class="card-body">
@@ -840,9 +882,9 @@ li a:hover {
                             <th>Perfil</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="userTableBody">
                         {% for u in usuarios %}
-                        <tr>
+                        <tr class="{{ u.perfil }}">
                             <td>{{ u.id }}</td>
                             <td>{{ u.nome }}</td>
                             <td>{{ u.email }}</td>
@@ -867,9 +909,22 @@ li a:hover {
         </div>
     </div>
 
+    <script>
+        function filterUsers() {
+            const filterValue = document.getElementById('userFilter').value;
+            const rows = document.querySelectorAll('#userTableBody tr');
+
+            rows.forEach(row => {
+                if (filterValue === 'all' || row.classList.contains(filterValue)) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        }
+    </script>
 </body>
 </html>
-
 ```
 
 ---
