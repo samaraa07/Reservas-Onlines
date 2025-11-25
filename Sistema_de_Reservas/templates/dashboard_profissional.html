@@ -6,12 +6,27 @@
     <p>Você está logado como <strong>Profissional</strong>.</p>
     <p><strong>Especialidade(s):</strong> {{ user.profissional.especialidades }}</p>
 
-    <h3>Seus agendamentos</h3>
+    <p>
+      <a href="{{ url_for('register_servico') }}" class="btn">Cadastrar Novo Serviço</a>
+    </p>
+
+    <h3>Seus Serviços Cadastrados</h3>
+    <ul>
+      {% for servico in user.profissional.servicos %}
+        <li>
+          {{ servico.nome }} – Preço: R$ {{ servico.preco }} – Duração: {{ servico.duracao_min }} min
+        </li>
+      {% else %}
+        <li>Você ainda não cadastrou serviços.</li>
+      {% endfor %}
+    </ul>
+
+    <h3>Seus Agendamentos</h3>
     <ul>
       {% for ag in agendamentos %}
         <li>
           {{ ag.data_hora.strftime('%d/%m/%Y %H:%M') }} – 
-          {{ ag.servico.nome }} 
+          Serviço: {{ ag.servico.nome }} 
           (Cliente: {{ ag.cliente.user.nome }})
         </li>
       {% else %}
