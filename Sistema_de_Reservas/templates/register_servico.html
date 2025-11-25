@@ -1,21 +1,157 @@
 {% extends "base.html" %}
 {% block title %}Cadastro de Serviço{% endblock %}
-{% block content %}
-  <div class="container">
-    <h2>Cadastro de Serviço</h2>
-    <form method="post" action="{{ url_for('register_servico') }}">
-      <input type="text" name="nome" placeholder="Nome do serviço" required>
-      <input type="number" name="duracao" placeholder="Duração (min)" required>
-      <input type="number" step="0.01" name="preco" placeholder="Preço (R$)" required>
-      
-      <label>Profissional</label>
-      <select name="profissional_id" required>
-        {% for p in profissionais %}
-          <option value="{{ p.id }}">{{ p.user.nome }} — {{ p.especialidades }}</option>
-        {% endfor %}
-      </select>
 
-      <button type="submit">Cadastrar Serviço</button>
-    </form>
-  </div>
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register_servico.css') }}">
+
+<div class="container">
+  <h2>Cadastro de Serviço</h2>
+
+  <form method="post" action="{{ url_for('register_servico') }}">
+
+    <!-- NOVO SELETOR COM SUBMENU -->
+    <div class="custom-select-container">
+      <div class="select-title" id="serviceSelect">Selecione o Serviço</div>
+
+      <div class="dropdown" id="dropdownMenu">
+        <ul>
+
+          <!-- ================= CONSULTAS ================= -->
+          <li class="has-submenu">
+            Consultas Médicas
+            <ul class="submenu">
+              <li data-value="Consulta Clínica Geral">Consulta Clínica Geral</li>
+              <li data-value="Consulta Pediátrica">Consulta Pediátrica</li>
+              <li data-value="Consulta Dermatológica">Consulta Dermatológica</li>
+              <li data-value="Consulta Ortopédica">Consulta Ortopédica</li>
+              <li data-value="Consulta Cardiológica">Consulta Cardiológica</li>
+            </ul>
+          </li>
+
+          <!-- ================= CABELO FEMININO ================= -->
+          <li class="has-submenu">
+            Cortes Femininos
+            <ul class="submenu">
+              <li data-value="Corte Feminino - Em camadas (curto)">Em camadas (curto)</li>
+              <li data-value="Corte Feminino - Em camadas (médio)">Em camadas (médio)</li>
+              <li data-value="Corte Feminino - Em camadas (longo)">Em camadas (longo)</li>
+              <li data-value="Corte Feminino - Repicado">Repicado</li>
+              <li data-value="Corte Feminino - Reto">Corte Reto</li>
+            </ul>
+          </li>
+
+          <!-- ================= CABELO MASCULINO ================= -->
+          <li class="has-submenu">
+            Cortes Masculinos
+            <ul class="submenu">
+              <li data-value="Corte Masculino - Fade">Fade</li>
+              <li data-value="Corte Masculino - Degradê">Degradê</li>
+              <li data-value="Corte Masculino - Social">Social</li>
+              <li data-value="Corte Masculino - Militar">Militar</li>
+              <li data-value="Corte Masculino - Undercut">Undercut</li>
+            </ul>
+          </li>
+
+          <!-- ================= ESTÉTICA ================= -->
+          <li class="has-submenu">
+            Beleza e Estética
+            <ul class="submenu">
+              <li data-value="Escova Tradicional">Escova Tradicional</li>
+              <li data-value="Escova Modelada">Escova Modelada</li>
+              <li data-value="Manicure e Pedicure">Manicure e Pedicure</li>
+              <li data-value="Design de Sobrancelhas">Design de Sobrancelhas</li>
+              <li data-value="Maquiagem Completa">Maquiagem Completa</li>
+            </ul>
+          </li>
+
+          <!-- ================= MASSAGENS ================= -->
+          <li class="has-submenu">
+            Massoterapia
+            <ul class="submenu">
+              <li data-value="Massagem Relaxante">Massagem Relaxante</li>
+              <li data-value="Massagem Terapêutica">Massagem Terapêutica</li>
+              <li data-value="Drenagem Linfática">Drenagem Linfática</li>
+              <li data-value="Massagem Desportiva">Massagem Desportiva</li>
+            </ul>
+          </li>
+
+          <!-- ================= GASTRONOMIA ================= -->
+          <li class="has-submenu">
+            Gastronomia / Comida
+            <ul class="submenu">
+              <li data-value="Reserva de Mesa - Restaurante">Reserva de Mesa (Restaurante)</li>
+              <li data-value="Chef Particular">Chef Particular</li>
+              <li data-value="Buffet para Evento">Buffet para Evento</li>
+              <li data-value="Encomenda de Doces">Encomenda de Doces</li>
+              <li data-value="Encomenda de Salgados">Encomenda de Salgados</li>
+            </ul>
+          </li>
+
+          <!-- ================= SERVIÇOS DOMÉSTICOS ================= -->
+          <li class="has-submenu">
+            Serviços Domésticos
+            <ul class="submenu">
+              <li data-value="Limpeza Residencial">Limpeza Residencial</li>
+              <li data-value="Diarista">Diarista</li>
+              <li data-value="Lavanderia">Lavanderia</li>
+              <li data-value="Passadoria">Passadoria</li>
+            </ul>
+          </li>
+
+          <!-- ================= PET ================= -->
+          <li class="has-submenu">
+            Serviços para Pets
+            <ul class="submenu">
+              <li data-value="Banho e Tosa">Banho e Tosa</li>
+              <li data-value="Consulta Veterinária">Consulta Veterinária</li>
+              <li data-value="Passeio com Cães">Passeio com Cães</li>
+              <li data-value="Creche para Pets">Creche para Pets</li>
+            </ul>
+          </li>
+
+          <!-- ================= EVENTOS ================= -->
+          <li class="has-submenu">
+            Eventos
+            <ul class="submenu">
+              <li data-value="Fotógrafo Profissional">Fotógrafo Profissional</li>
+              <li data-value="Filmagem de Evento">Filmagem de Evento</li>
+              <li data-value="DJ para Festa">DJ para Festa</li>
+              <li data-value="Decoração de Eventos">Decoração de Eventos</li>
+            </ul>
+          </li>
+
+          <!-- ================= AUTOS ================= -->
+          <li class="has-submenu">
+            Serviços Automotivos
+            <ul class="submenu">
+              <li data-value="Troca de Óleo">Troca de Óleo</li>
+              <li data-value="Revisão de Freios">Revisão de Freios</li>
+              <li data-value="Alinhamento e Balanceamento">Alinhamento e Balanceamento</li>
+              <li data-value="Lavagem Completa">Lavagem Completa</li>
+            </ul>
+          </li>
+
+          <!-- ================= SEM SUBCATEGORIA ================= -->
+          <li data-value="Outro">Outro (Sem subcategorias)</li>
+
+        </ul>
+      </div>
+    </div>
+
+    <!-- INPUT OCULTO -->
+    <input type="hidden" name="nome" id="serviceInput" required>
+
+    <!-- CAMPOS ORIGINAIS -->
+    <input type="number" name="duracao" placeholder="Duração (min)" required>
+    <input type="number" step="0.01" name="preco" placeholder="Preço (R$)" required>
+
+    <input type="hidden" name="profissional_id" value="{{ user.profissional.id }}">
+
+    <button type="submit">Cadastrar Serviço</button>
+  </form>
+</div>
+
+<script src="{{ url_for('static', filename='js/register_servico.js') }}"></script>
+
 {% endblock %}

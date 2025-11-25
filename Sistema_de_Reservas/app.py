@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from dateutil import parser
 import os
 
-
 def create_app():
     app = Flask(__name__)
 
@@ -14,16 +13,14 @@ def create_app():
 
     # Caminho do banco de dados dentro da pasta 'banco_de_dados'
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'banco_de_dados', 'salon_reservas.db')}"
-
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'troque_essa_chave_para_producao'
 
     db.init_app(app)
     return app
 
-
 app = create_app()
-
 
 # -------------------------
 # Helpers
@@ -34,7 +31,6 @@ def current_user():
         return None
     return User.query.get(uid)
 
-
 def exige_login(func):
     from functools import wraps
 
@@ -44,7 +40,6 @@ def exige_login(func):
             return redirect(url_for('index'))
         return func(*args, **kwargs)
     return wrapper
-
 
 def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
     """Retorna True se há conflito (ou seja, horário ocupado)."""
@@ -60,7 +55,6 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
             return True
     return False
 
-
 # -------------------------
 # Rotas públicas
 # -------------------------
@@ -68,7 +62,6 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
 def index():
     user = current_user()
     return render_template('index.html', user=user)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -96,7 +89,6 @@ def login():
             return redirect(url_for('dashboard_cliente'))
 
     return render_template('login.html')
-
 
 # -------------------------
 # Cadastro Cliente
@@ -126,7 +118,6 @@ def register_cliente():
 
     return render_template('register_cliente.html')
 
-
 # -------------------------
 # Cadastro Profissional
 # -------------------------
@@ -155,7 +146,6 @@ def register_profissional():
         return redirect(url_for('login'))
 
     return render_template('register_profissional.html')
-
 
 # -------------------------
 # Cadastro Administrador
@@ -188,42 +178,37 @@ def register_admin():
 
     return render_template('register_admin.html')
 
-
 # -------------------------
-# Cadastro de Serviço (apenas Admin)
+# Cadastro de Serviço (apenas para Profissionais)
 # -------------------------
 @app.route('/register_servico', methods=['GET', 'POST'])
 @exige_login
 def register_servico():
     u = current_user()
-    if u.perfil != 'admin':
-        flash("Apenas administradores podem cadastrar serviços.", "danger")
+    if u.perfil != 'profissional':
+        flash("Apenas profissionais podem cadastrar serviços.", "danger")
         return redirect(url_for('index'))
-
-    profissionais = Profissional.query.all()
 
     if request.method == 'POST':
         nome = request.form['nome']
         duracao = int(request.form['duracao'])
         preco = float(request.form['preco'])
-        profissional_id = int(request.form['profissional_id'])
+        profissional_id = u.profissional.id  # Usa o ID do profissional logado
 
         servico = Servico(nome=nome, duracao_min=duracao, preco=preco, profissional_id=profissional_id)
         db.session.add(servico)
         db.session.commit()
 
         flash("Serviço cadastrado com sucesso!", "success")
-        return redirect(url_for('dashboard_admin'))
+        return redirect(url_for('dashboard_profissional'))
 
-    return render_template('register_servico.html', profissionais=profissionais)
-
+    return render_template('register_servico.html', user=u)  # Passando a variável user
 
 @app.route('/logout')
 def logout():
     session.clear()
     flash("Deslogado com sucesso.", "info")
     return redirect(url_for('index'))
-
 
 # -------------------------
 # Dashboards
@@ -237,7 +222,6 @@ def dashboard_cliente():
     servicos = Servico.query.all()
     return render_template('dashboard_cliente.html', user=u, servicos=servicos)
 
-
 @app.route('/dashboard/profissional')
 @exige_login
 def dashboard_profissional():
@@ -247,7 +231,6 @@ def dashboard_profissional():
     prof = u.profissional
     ags = Agendamento.query.filter_by(profissional_id=prof.id).order_by(Agendamento.data_hora.desc()).all()
     return render_template('dashboard_profissional.html', user=u, agendamentos=ags)
-
 
 @app.route('/dashboard/admin')
 @exige_login
@@ -269,7 +252,6 @@ def dashboard_admin():
         servicos=servicos,
         agendamentos=ags
     )
-
 
 # -------------------------
 # Reservas
@@ -340,7 +322,6 @@ def reservar():
 
     return render_template('reservar.html', user=u, profissionais=profissionais)
 
-
 # -------------------------
 # API auxiliar
 # -------------------------
@@ -352,7 +333,6 @@ def servicos_por_profissional():
         return []
     servicos = Servico.query.filter_by(profissional_id=prof_id).all()
     return [{"id": s.id, "nome": s.nome, "duracao": s.duracao_min} for s in servicos]
-
 
 # -------------------------
 # Minhas reservas (cliente)
@@ -366,7 +346,6 @@ def minhas_reservas():
 
     ags = Agendamento.query.filter_by(cliente_id=u.cliente.id).order_by(Agendamento.data_hora.desc()).all()
     return render_template('minhas_reservas.html', user=u, agendamentos=ags)
-
 
 # -------------------------
 # Notificações
@@ -384,7 +363,6 @@ def notificacoes():
     notifs = query.all()
     return render_template('notificacoes.html', user=u, notificacoes=notifs)
 
-
 @app.route('/notificacao/ler/<int:notif_id>')
 @exige_login
 def marcar_lida(notif_id):
@@ -397,7 +375,6 @@ def marcar_lida(notif_id):
     notif.lida = True
     db.session.commit()
     return redirect(url_for('notificacoes'))
-
 
 # -------------------------
 # Ações confirmar/cancelar agendamento
@@ -426,7 +403,6 @@ def confirmar_agendamento(ag_id):
         flash("Agendamento confirmado, mas houve um erro ao enviar a notificação.", "warning")
 
     return redirect(request.referrer or url_for('index'))
-
 
 @app.route('/agendamento/cancelar/<int:ag_id>')
 @exige_login
@@ -457,7 +433,6 @@ def cancelar_agendamento(ag_id):
 
     return redirect(request.referrer or url_for('index'))
 
-
 # -------------------------
 # Painel de Usuários (somente administradores)
 # -------------------------
@@ -479,7 +454,6 @@ def painel_usuarios():
 def register_fallback():
     flash("Use as páginas corretas de cadastro: Cliente ou Profissional.", "info")
     return redirect(url_for('index'))
-
 
 # -------------------------
 # Run
