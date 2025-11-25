@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Notificações{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2 class="mt-4 mb-4">Notificações</h2>
+
+    {% if notificacoes %}
+      <div class="mb-3">
+        <a href="?filtro=nao_lidas" class="btn btn-secondary">Somente não lidas</a>
+        <a href="?filtro=todas" class="btn btn-secondary">Todas</a>
+      </div>
+
+      <ul class="list-group">
+      {% for n in notificacoes %}
+        <li class="list-group-item {% if not n.lida %}list-group-item-warning{% endif %}">
+          <div>
+            <strong>{{ n.criado_em.strftime('%d/%m/%Y %H:%M') }}</strong> — {{ n.mensagem }}
+            {% if not n.lida %}
+              <a href="{{ url_for('marcar_lida', notif_id=n.id) }}" class="badge bg-info">Marcar como lida</a>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <div class="alert alert-info" role="alert">
+        Sem notificações.
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

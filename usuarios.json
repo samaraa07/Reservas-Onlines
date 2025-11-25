@@ -63,5 +63,11 @@
     "nome": "maria",
     "email": "email@gmail",
     "senha": "1234"
+  },
+  {
+    "nome": "mariaaa",
+    "email": "maria@11",
+    "senha": "123456",
+    "tipo": "usuario"
   }
 ]
