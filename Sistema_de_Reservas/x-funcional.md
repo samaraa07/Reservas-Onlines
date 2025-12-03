@@ -12,8 +12,11 @@
 |   |   ├──css/
 |   |   |   ├──font-poppins.css
 |   |   |   ├──painel_usuarios.css
+|   |   |   ├──register_servico.css
 |   |   |   └──style.css
-|   |   └──imgs/
+|   |   ├──imgs/
+|   |   └──js/
+|   |   |   └──register_servico.js
 |   ├──templates/
 |   |   ├──base.html
 |   |   ├──dashboard_admin.html
@@ -28,6 +31,7 @@
 |   |   ├──register_cliente.html
 |   |   ├──register_profissional.html
 |   |   ├──register_servico.html
+|   |   ├──relatorios.html
 |   |   └──reservar.html
 |   ├──app.py
 |   ├──db_create.py
@@ -169,6 +173,95 @@
 .btn-secondary {
     --bs-btn-bg: #8b5e3c;
 }
+```
+
+---
+
+#### Conteúdo do arquivo `Reservas-Onlines/static/css/register_servico.css`:
+```css
+.custom-select-container {
+  position: relative;
+  width: 350px;
+  margin-bottom: 20px;
+}
+
+.select-title {
+  padding: 10px;
+  background: #f3f3f3;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  border-radius: 4px;
+  position: relative;
+  font-weight: 500;
+}
+
+.select-title::after {
+  content: " ▾";
+  position: absolute;
+  right: 10px;
+  font-size: 16px;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 45px;
+  left: 0;
+  width: 350px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 100;
+}
+
+.dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown ul > li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  position: relative;
+}
+
+.dropdown ul > li:hover {
+  background: #f7f7f7;
+}
+
+.has-submenu::after {
+  content: "▸";
+  position: absolute;
+  right: 10px;
+}
+
+.submenu {
+  display: none;
+  position: absolute;
+  left: 350px;
+  top: 0;
+  width: 350px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 150;
+}
+
+.has-submenu:hover > .submenu,
+.submenu:hover {
+  display: block;
+}
+
+.submenu li {
+  border-bottom: 1px solid #eee;
+}
+
+.submenu li:hover {
+  background: #f0f0f0;
+}
+
 ```
 
 ---
@@ -540,6 +633,36 @@ li a:hover {
 
 ---
 
+#### Conteúdo do arquivo `Reservas-Onlines/static/js/register_servico.js`:
+```js
+// Abre e fecha o dropdown
+document.getElementById("serviceSelect").addEventListener("click", function () {
+  const menu = document.getElementById("dropdownMenu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+});
+
+// Fecha ao clicar fora
+document.addEventListener("click", function (event) {
+  const container = document.querySelector(".custom-select-container");
+  if (!container.contains(event.target)) {
+    document.getElementById("dropdownMenu").style.display = "none";
+  }
+});
+
+// Seleciona item final
+document.querySelectorAll(".submenu li, .dropdown > ul > li:not(.has-submenu)").forEach(item => {
+  item.addEventListener("click", function () {
+    const value = this.getAttribute("data-value");
+    document.getElementById("serviceInput").value = value;
+    document.getElementById("serviceSelect").innerText = value;
+    document.getElementById("dropdownMenu").style.display = "none";
+  });
+});
+
+```
+
+---
+
 #### Conteúdo do arquivo `Reservas-Onlines/templates/base.html`:
 ```html
 <!doctype html>
@@ -643,10 +766,6 @@ li a:hover {
       {% endfor %}
     </ul>
 
-    <p>
-      <a href="{{ url_for('register_servico') }}" class="btn">Cadastrar novo serviço</a>
-    </p>
-
     <h3>Todos os Agendamentos</h3>
     <ul>
       {% for ag in agendamentos %}
@@ -694,12 +813,27 @@ li a:hover {
     <p>Você está logado como <strong>Profissional</strong>.</p>
     <p><strong>Especialidade(s):</strong> {{ user.profissional.especialidades }}</p>
 
-    <h3>Seus agendamentos</h3>
+    <p>
+      <a href="{{ url_for('register_servico') }}" class="btn">Cadastrar Novo Serviço</a>
+    </p>
+
+    <h3>Seus Serviços Cadastrados</h3>
+    <ul>
+      {% for servico in user.profissional.servicos %}
+        <li>
+          {{ servico.nome }} – Preço: R$ {{ servico.preco }} – Duração: {{ servico.duracao_min }} min
+        </li>
+      {% else %}
+        <li>Você ainda não cadastrou serviços.</li>
+      {% endfor %}
+    </ul>
+
+    <h3>Seus Agendamentos</h3>
     <ul>
       {% for ag in agendamentos %}
         <li>
           {{ ag.data_hora.strftime('%d/%m/%Y %H:%M') }} – 
-          {{ ag.servico.nome }} 
+          Serviço: {{ ag.servico.nome }} 
           (Cliente: {{ ag.cliente.user.nome }})
         </li>
       {% else %}
@@ -708,7 +842,6 @@ li a:hover {
     </ul>
   </div>
 {% endblock %}
-
 ```
 
 ---
@@ -997,26 +1130,168 @@ li a:hover {
 ```html
 {% extends "base.html" %}
 {% block title %}Cadastro de Serviço{% endblock %}
+
 {% block content %}
-  <div class="container">
-    <h2>Cadastro de Serviço</h2>
-    <form method="post" action="{{ url_for('register_servico') }}">
-      <input type="text" name="nome" placeholder="Nome do serviço" required>
-      <input type="number" name="duracao" placeholder="Duração (min)" required>
-      <input type="number" step="0.01" name="preco" placeholder="Preço (R$)" required>
-      
-      <label>Profissional</label>
-      <select name="profissional_id" required>
-        {% for p in profissionais %}
-          <option value="{{ p.id }}">{{ p.user.nome }} — {{ p.especialidades }}</option>
-        {% endfor %}
-      </select>
 
-      <button type="submit">Cadastrar Serviço</button>
-    </form>
-  </div>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register_servico.css') }}">
+
+<div class="container">
+  <h2>Cadastro de Serviço</h2>
+
+  <form method="post" action="{{ url_for('register_servico') }}">
+
+    <!-- NOVO SELETOR COM SUBMENU -->
+    <div class="custom-select-container">
+      <div class="select-title" id="serviceSelect">Selecione o Serviço</div>
+
+      <div class="dropdown" id="dropdownMenu">
+        <ul>
+
+          <!-- ================= CONSULTAS ================= -->
+          <li class="has-submenu">
+            Consultas Médicas
+            <ul class="submenu">
+              <li data-value="Consulta Clínica Geral">Consulta Clínica Geral</li>
+              <li data-value="Consulta Pediátrica">Consulta Pediátrica</li>
+              <li data-value="Consulta Dermatológica">Consulta Dermatológica</li>
+              <li data-value="Consulta Ortopédica">Consulta Ortopédica</li>
+              <li data-value="Consulta Cardiológica">Consulta Cardiológica</li>
+            </ul>
+          </li>
+
+          <!-- ================= CABELO FEMININO ================= -->
+          <li class="has-submenu">
+            Cortes Femininos
+            <ul class="submenu">
+              <li data-value="Corte Feminino - Em camadas (curto)">Em camadas (curto)</li>
+              <li data-value="Corte Feminino - Em camadas (médio)">Em camadas (médio)</li>
+              <li data-value="Corte Feminino - Em camadas (longo)">Em camadas (longo)</li>
+              <li data-value="Corte Feminino - Repicado">Repicado</li>
+              <li data-value="Corte Feminino - Reto">Corte Reto</li>
+            </ul>
+          </li>
+
+          <!-- ================= CABELO MASCULINO ================= -->
+          <li class="has-submenu">
+            Cortes Masculinos
+            <ul class="submenu">
+              <li data-value="Corte Masculino - Fade">Fade</li>
+              <li data-value="Corte Masculino - Degradê">Degradê</li>
+              <li data-value="Corte Masculino - Social">Social</li>
+              <li data-value="Corte Masculino - Militar">Militar</li>
+              <li data-value="Corte Masculino - Undercut">Undercut</li>
+            </ul>
+          </li>
+
+          <!-- ================= ESTÉTICA ================= -->
+          <li class="has-submenu">
+            Beleza e Estética
+            <ul class="submenu">
+              <li data-value="Escova Tradicional">Escova Tradicional</li>
+              <li data-value="Escova Modelada">Escova Modelada</li>
+              <li data-value="Manicure e Pedicure">Manicure e Pedicure</li>
+              <li data-value="Design de Sobrancelhas">Design de Sobrancelhas</li>
+              <li data-value="Maquiagem Completa">Maquiagem Completa</li>
+            </ul>
+          </li>
+
+          <!-- ================= MASSAGENS ================= -->
+          <li class="has-submenu">
+            Massoterapia
+            <ul class="submenu">
+              <li data-value="Massagem Relaxante">Massagem Relaxante</li>
+              <li data-value="Massagem Terapêutica">Massagem Terapêutica</li>
+              <li data-value="Drenagem Linfática">Drenagem Linfática</li>
+              <li data-value="Massagem Desportiva">Massagem Desportiva</li>
+            </ul>
+          </li>
+
+          <!-- ================= GASTRONOMIA ================= -->
+          <li class="has-submenu">
+            Gastronomia / Comida
+            <ul class="submenu">
+              <li data-value="Reserva de Mesa - Restaurante">Reserva de Mesa (Restaurante)</li>
+              <li data-value="Chef Particular">Chef Particular</li>
+              <li data-value="Buffet para Evento">Buffet para Evento</li>
+              <li data-value="Encomenda de Doces">Encomenda de Doces</li>
+              <li data-value="Encomenda de Salgados">Encomenda de Salgados</li>
+            </ul>
+          </li>
+
+          <!-- ================= SERVIÇOS DOMÉSTICOS ================= -->
+          <li class="has-submenu">
+            Serviços Domésticos
+            <ul class="submenu">
+              <li data-value="Limpeza Residencial">Limpeza Residencial</li>
+              <li data-value="Diarista">Diarista</li>
+              <li data-value="Lavanderia">Lavanderia</li>
+              <li data-value="Passadoria">Passadoria</li>
+            </ul>
+          </li>
+
+          <!-- ================= PET ================= -->
+          <li class="has-submenu">
+            Serviços para Pets
+            <ul class="submenu">
+              <li data-value="Banho e Tosa">Banho e Tosa</li>
+              <li data-value="Consulta Veterinária">Consulta Veterinária</li>
+              <li data-value="Passeio com Cães">Passeio com Cães</li>
+              <li data-value="Creche para Pets">Creche para Pets</li>
+            </ul>
+          </li>
+
+          <!-- ================= EVENTOS ================= -->
+          <li class="has-submenu">
+            Eventos
+            <ul class="submenu">
+              <li data-value="Fotógrafo Profissional">Fotógrafo Profissional</li>
+              <li data-value="Filmagem de Evento">Filmagem de Evento</li>
+              <li data-value="DJ para Festa">DJ para Festa</li>
+              <li data-value="Decoração de Eventos">Decoração de Eventos</li>
+            </ul>
+          </li>
+
+          <!-- ================= AUTOS ================= -->
+          <li class="has-submenu">
+            Serviços Automotivos
+            <ul class="submenu">
+              <li data-value="Troca de Óleo">Troca de Óleo</li>
+              <li data-value="Revisão de Freios">Revisão de Freios</li>
+              <li data-value="Alinhamento e Balanceamento">Alinhamento e Balanceamento</li>
+              <li data-value="Lavagem Completa">Lavagem Completa</li>
+            </ul>
+          </li>
+
+          <!-- ================= SEM SUBCATEGORIA ================= -->
+          <li data-value="Outro">Outro (Sem subcategorias)</li>
+
+        </ul>
+      </div>
+    </div>
+
+    <!-- INPUT OCULTO -->
+    <input type="hidden" name="nome" id="serviceInput" required>
+
+    <!-- CAMPOS ORIGINAIS -->
+    <input type="number" name="duracao" placeholder="Duração (min)" required>
+    <input type="number" step="0.01" name="preco" placeholder="Preço (R$)" required>
+
+    <input type="hidden" name="profissional_id" value="{{ user.profissional.id }}">
+
+    <button type="submit">Cadastrar Serviço</button>
+  </form>
+</div>
+
+<script src="{{ url_for('static', filename='js/register_servico.js') }}"></script>
+
 {% endblock %}
+```
 
+---
+
+#### Conteúdo do arquivo `Reservas-Onlines/templates/relatorios.html`:
+```html
+<!-- Sem conteúdo -->
 ```
 
 ---
@@ -1138,7 +1413,6 @@ from datetime import datetime, timedelta
 from dateutil import parser
 import os
 
-
 def create_app():
     app = Flask(__name__)
 
@@ -1147,16 +1421,14 @@ def create_app():
 
     # Caminho do banco de dados dentro da pasta 'banco_de_dados'
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'banco_de_dados', 'salon_reservas.db')}"
-
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'troque_essa_chave_para_producao'
 
     db.init_app(app)
     return app
 
-
 app = create_app()
-
 
 # -------------------------
 # Helpers
@@ -1167,7 +1439,6 @@ def current_user():
         return None
     return User.query.get(uid)
 
-
 def exige_login(func):
     from functools import wraps
 
@@ -1177,7 +1448,6 @@ def exige_login(func):
             return redirect(url_for('index'))
         return func(*args, **kwargs)
     return wrapper
-
 
 def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
     """Retorna True se há conflito (ou seja, horário ocupado)."""
@@ -1193,7 +1463,6 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
             return True
     return False
 
-
 # -------------------------
 # Rotas públicas
 # -------------------------
@@ -1201,7 +1470,6 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
 def index():
     user = current_user()
     return render_template('index.html', user=user)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1229,7 +1497,6 @@ def login():
             return redirect(url_for('dashboard_cliente'))
 
     return render_template('login.html')
-
 
 # -------------------------
 # Cadastro Cliente
@@ -1259,7 +1526,6 @@ def register_cliente():
 
     return render_template('register_cliente.html')
 
-
 # -------------------------
 # Cadastro Profissional
 # -------------------------
@@ -1288,7 +1554,6 @@ def register_profissional():
         return redirect(url_for('login'))
 
     return render_template('register_profissional.html')
-
 
 # -------------------------
 # Cadastro Administrador
@@ -1321,42 +1586,37 @@ def register_admin():
 
     return render_template('register_admin.html')
 
-
 # -------------------------
-# Cadastro de Serviço (apenas Admin)
+# Cadastro de Serviço (apenas para Profissionais)
 # -------------------------
 @app.route('/register_servico', methods=['GET', 'POST'])
 @exige_login
 def register_servico():
     u = current_user()
-    if u.perfil != 'admin':
-        flash("Apenas administradores podem cadastrar serviços.", "danger")
+    if u.perfil != 'profissional':
+        flash("Apenas profissionais podem cadastrar serviços.", "danger")
         return redirect(url_for('index'))
-
-    profissionais = Profissional.query.all()
 
     if request.method == 'POST':
         nome = request.form['nome']
         duracao = int(request.form['duracao'])
         preco = float(request.form['preco'])
-        profissional_id = int(request.form['profissional_id'])
+        profissional_id = u.profissional.id  # Usa o ID do profissional logado
 
         servico = Servico(nome=nome, duracao_min=duracao, preco=preco, profissional_id=profissional_id)
         db.session.add(servico)
         db.session.commit()
 
         flash("Serviço cadastrado com sucesso!", "success")
-        return redirect(url_for('dashboard_admin'))
+        return redirect(url_for('dashboard_profissional'))
 
-    return render_template('register_servico.html', profissionais=profissionais)
-
+    return render_template('register_servico.html', user=u)  # Passando a variável user
 
 @app.route('/logout')
 def logout():
     session.clear()
     flash("Deslogado com sucesso.", "info")
     return redirect(url_for('index'))
-
 
 # -------------------------
 # Dashboards
@@ -1370,7 +1630,6 @@ def dashboard_cliente():
     servicos = Servico.query.all()
     return render_template('dashboard_cliente.html', user=u, servicos=servicos)
 
-
 @app.route('/dashboard/profissional')
 @exige_login
 def dashboard_profissional():
@@ -1380,7 +1639,6 @@ def dashboard_profissional():
     prof = u.profissional
     ags = Agendamento.query.filter_by(profissional_id=prof.id).order_by(Agendamento.data_hora.desc()).all()
     return render_template('dashboard_profissional.html', user=u, agendamentos=ags)
-
 
 @app.route('/dashboard/admin')
 @exige_login
@@ -1402,7 +1660,6 @@ def dashboard_admin():
         servicos=servicos,
         agendamentos=ags
     )
-
 
 # -------------------------
 # Reservas
@@ -1473,7 +1730,6 @@ def reservar():
 
     return render_template('reservar.html', user=u, profissionais=profissionais)
 
-
 # -------------------------
 # API auxiliar
 # -------------------------
@@ -1485,7 +1741,6 @@ def servicos_por_profissional():
         return []
     servicos = Servico.query.filter_by(profissional_id=prof_id).all()
     return [{"id": s.id, "nome": s.nome, "duracao": s.duracao_min} for s in servicos]
-
 
 # -------------------------
 # Minhas reservas (cliente)
@@ -1499,7 +1754,6 @@ def minhas_reservas():
 
     ags = Agendamento.query.filter_by(cliente_id=u.cliente.id).order_by(Agendamento.data_hora.desc()).all()
     return render_template('minhas_reservas.html', user=u, agendamentos=ags)
-
 
 # -------------------------
 # Notificações
@@ -1517,7 +1771,6 @@ def notificacoes():
     notifs = query.all()
     return render_template('notificacoes.html', user=u, notificacoes=notifs)
 
-
 @app.route('/notificacao/ler/<int:notif_id>')
 @exige_login
 def marcar_lida(notif_id):
@@ -1530,7 +1783,6 @@ def marcar_lida(notif_id):
     notif.lida = True
     db.session.commit()
     return redirect(url_for('notificacoes'))
-
 
 # -------------------------
 # Ações confirmar/cancelar agendamento
@@ -1559,7 +1811,6 @@ def confirmar_agendamento(ag_id):
         flash("Agendamento confirmado, mas houve um erro ao enviar a notificação.", "warning")
 
     return redirect(request.referrer or url_for('index'))
-
 
 @app.route('/agendamento/cancelar/<int:ag_id>')
 @exige_login
@@ -1590,7 +1841,6 @@ def cancelar_agendamento(ag_id):
 
     return redirect(request.referrer or url_for('index'))
 
-
 # -------------------------
 # Painel de Usuários (somente administradores)
 # -------------------------
@@ -1613,13 +1863,11 @@ def register_fallback():
     flash("Use as páginas corretas de cadastro: Cliente ou Profissional.", "info")
     return redirect(url_for('index'))
 
-
 # -------------------------
 # Run
 # -------------------------
 if __name__ == '__main__':
     app.run(debug=True)
-
 ```
 
 ---
