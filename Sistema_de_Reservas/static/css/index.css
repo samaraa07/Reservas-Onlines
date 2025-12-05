@@ -1,0 +1,154 @@
+body {
+  background-color: #f5f3f2;
+}
+
+/* Topo */
+.topbar-landing {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 32px;
+  border-bottom: 2px solid #000;
+  background-color: #ffffff;
+}
+
+.topbar-logo {
+  border: 1px solid #000;
+  border-radius: 20px;
+  padding: 6px 24px;
+  font-weight: 600;
+}
+
+.topbar-btn {
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 6px 24px;
+  background-color: #f5f3f2;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  color: #000;
+}
+
+.topbar-btn:hover {
+  background-color: #e5e1df;
+}
+
+/* Hero/banner */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f3f2;
+  border-bottom: 2px solid #d3d3d3;
+  min-height: 220px;
+}
+
+.hero-text {
+  flex: 1;
+}
+
+.hero-img {
+  flex: 0 0 260px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-img img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Cards */
+.cards-section {
+  padding: 40px 32px 60px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.card-medico {
+  background-color: #e9eef2;
+  border-radius: 12px;
+  border: 1px solid #bcc3c9;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+}
+
+.card-foto {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.card-foto img {
+  max-height: 160px;
+  object-fit: cover;
+}
+
+.card-conteudo h2 {
+  font-size: 20px;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.card-conteudo h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.card-conteudo p {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Rodapé discreto / área restrita */
+.landing-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+  padding-bottom: 1rem;
+}
+
+.landing-footer a {
+  color: #aaa;
+  text-decoration: none;
+}
+
+.landing-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    flex-direction: column-reverse;
+    text-align: center;
+  }
+
+  .hero-img {
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+}

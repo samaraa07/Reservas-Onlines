@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
+
 db = SQLAlchemy()
 
 
@@ -103,6 +104,9 @@ class Profissional(db.Model):
     )
     contato = db.Column('pro_contato', db.String(200))
     especialidades = db.Column('pro_especialidades', db.String(500))
+
+    # NOVO: nome do arquivo da foto de perfil (ex.: profissional3.png)
+    foto_perfil = db.Column('pro_foto_perfil', db.String(100))
 
     # status de aprovação do profissional
     status = db.Column(

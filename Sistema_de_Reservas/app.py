@@ -36,11 +36,13 @@ def current_user():
 
 def exige_login(func):
     from functools import wraps
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not current_user():
             return redirect(url_for('index'))
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -61,6 +63,7 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
 
 def exige_admin(func):
     from functools import wraps
+
     @wraps(func)
     def wrap(*args, **kwargs):
         u = current_user()
@@ -68,6 +71,7 @@ def exige_admin(func):
             flash("Apenas administradores podem realizar esta ação.", "danger")
             return redirect(url_for('index'))
         return func(*args, **kwargs)
+
     return wrap
 
 
@@ -77,8 +81,8 @@ def exige_admin(func):
 @app.route('/')
 def index():
     user = current_user()
-    return render_template('index.html', user=user)
-
+    profissionais_aprovados = Profissional.query.filter_by(status='aprovado').all()
+    return render_template('index.html', user=user, profissionais=profissionais_aprovados)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -146,6 +150,159 @@ def login():
             return redirect(url_for('dashboard_cliente'))
 
     return render_template('login.html')
+
+
+# -------------------------
+# Login / Cadastro restritos (Admin / Profissional)
+# -------------------------
+@app.route('/login-restrito', methods=['GET', 'POST'])
+def login_restrito():
+    if request.method == 'POST':
+        entrada = request.form['email']
+        senha = request.form['senha']
+        user = User.query.filter_by(email=entrada).first()
+
+        if not user or not check_password_hash(user.senha_hash, senha):
+            flash("Credenciais inválidas.", "danger")
+            return redirect(url_for('login_restrito'))
+
+        # Só admin ou profissional podem entrar aqui
+        if user.perfil not in ('admin', 'profissional'):
+            flash("Esta área é apenas para administradores e profissionais.", "warning")
+            return redirect(url_for('login'))
+
+        # Regras específicas para profissional
+        if user.perfil == 'profissional':
+            if not user.profissional:
+                flash("Conta de profissional inválida. Contate o administrador.", "danger")
+                return redirect(url_for('login_restrito'))
+
+            if user.profissional.status == 'pendente':
+                flash("Seu cadastro de profissional ainda está em análise.", "warning")
+                return redirect(url_for('login_restrito'))
+
+            if user.profissional.status == 'reprovado':
+                flash("Esse profissional foi reprovado. Contate o administrador para mais informações.", "danger")
+                return redirect(url_for('login_restrito'))
+
+            if not user.is_ativo:
+                flash("Seu cadastro de profissional está inativo. Contate o administrador.", "danger")
+                return redirect(url_for('login_restrito'))
+
+        # Regras específicas para admin
+        elif user.perfil == 'admin':
+            if not user.administrador:
+                flash("Conta de administrador inválida. Contate outro administrador.", "danger")
+                return redirect(url_for('login_restrito'))
+
+            if user.administrador.status == 'pendente':
+                flash("Seu cadastro de administrador ainda está em análise.", "warning")
+                return redirect(url_for('login_restrito'))
+
+            if user.administrador.status == 'reprovado':
+                flash("Esse administrador foi reprovado. Contate outro administrador.", "danger")
+                return redirect(url_for('login_restrito'))
+
+            if not user.is_ativo:
+                flash("Seu cadastro de administrador está inativo. Contate outro administrador.", "danger")
+                return redirect(url_for('login_restrito'))
+
+        # Se passou por tudo, loga
+        session['user_id'] = user.id
+        flash(f"Bem-vindo(a), {user.nome}!", "success")
+
+        if user.perfil == 'admin':
+            return redirect(url_for('dashboard_admin'))
+        else:
+            return redirect(url_for('dashboard_profissional'))
+
+    return render_template('login_restrito.html')
+
+
+@app.route('/cadastro_restrito', methods=['GET', 'POST'])
+def cadastro_restrito():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+        tipo_user = request.form['tipo_user']
+        especialidades = request.form.get('especialidades', '')
+        foto_perfil = request.form.get('foto_perfil', '')  # <-- NOVO
+
+        if User.query.filter_by(email=email).first():
+            flash("Email já cadastrado.", "warning")
+            return redirect(url_for('login_restrito'))
+
+        senha_hash = generate_password_hash(senha)
+
+        if tipo_user == 'profissional':
+            u = User(
+                nome=nome,
+                email=email,
+                senha_hash=senha_hash,
+                perfil='profissional',
+                is_ativo=False
+            )
+            db.session.add(u)
+            db.session.commit()
+
+            p = Profissional(
+                especialidades=especialidades,
+                user=u,
+                status='pendente',
+                foto_perfil=foto_perfil   # <-- NOVO
+            )
+            db.session.add(p)
+            db.session.commit()
+
+            admins_aprovados = Administrador.query.filter_by(status='aprovado').all()
+            for adm in admins_aprovados:
+                msg = f"Novo profissional {u.nome} solicitou acesso."
+                db.session.add(Notificacao(
+                    user_id=adm.user_id,
+                    mensagem=msg,
+                    tipo='pedido_profissional',
+                    alvo_id=u.id
+                ))
+            db.session.commit()
+
+            flash("Cadastro de profissional enviado para aprovação.", "info")
+            return redirect(url_for('login_restrito'))
+
+        elif tipo_user == 'admin':
+            u = User(
+                nome=nome,
+                email=email,
+                senha_hash=senha_hash,
+                perfil='admin',
+                is_ativo=False
+            )
+            db.session.add(u)
+            db.session.commit()
+
+            admin_sub = Administrador(user_id=u.id, nivel_acesso="geral", status='pendente')
+            db.session.add(admin_sub)
+            db.session.commit()
+
+            admins_aprovados = Administrador.query.filter_by(status='aprovado').all()
+            for adm in admins_aprovados:
+                msg = f"Novo administrador {u.nome} solicitou acesso."
+                db.session.add(Notificacao(
+                    user_id=adm.user_id,
+                    mensagem=msg,
+                    tipo='pedido_admin',
+                    alvo_id=u.id
+                ))
+            db.session.commit()
+
+            flash("Cadastro de administrador enviado para aprovação.", "info")
+            return redirect(url_for('login_restrito'))
+
+        else:
+            flash("Tipo de usuário inválido.", "danger")
+            return redirect(url_for('cadastro_restrito'))
+
+    return render_template('cadastro_restrito.html')
 
 
 # -------------------------
@@ -558,7 +715,6 @@ def reprovar_profissional(user_id):
     db.session.commit()
     flash("Profissional reprovado.", "info")
     return redirect(url_for('notificacoes'))
-
 
 @app.route('/reconsiderar_profissional/<int:user_id>')
 @exige_login

@@ -1,34 +1,58 @@
 {% extends "base.html" %}
-{% block title %}Início{% endblock %}
+{% block title %}Página de Profissionais{% endblock %}
 {% block content %}
-  <div class="container">
-    <h1>Bem-vindo ao Sistema de Agendamento do Salão</h1>
-    <p>Escolha como deseja acessar:</p>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 
-    <div class="cards-home">
-      <!-- Cliente -->
-      <div class="card-home">
-        <h2>Cliente</h2>
-        <p>Agende seus serviços de forma rápida e fácil.</p>
-        <a href="{{ url_for('login') }}" class="btn">Login</a>
-        <a href="{{ url_for('register_cliente') }}" class="btn btn-secundario">Cadastro</a>
-      </div>
+  <!-- Cabeçalho da landing -->
+  <header class="topbar-landing">
+    <div class="topbar-logo">LOGO</div>
+    <!-- ENTRAR leva para o fluxo interno de login do sistema -->
+    <a href="{{ url_for('login') }}" class="topbar-btn">ENTRAR</a>
+  </header>
 
-      <!-- Profissional -->
-      <div class="card-home">
-        <h2>Profissional</h2>
-        <p>Gerencie seus agendamentos e serviços oferecidos.</p>
-        <a href="{{ url_for('login') }}" class="btn">Login</a>
-        <a href="{{ url_for('register_profissional') }}" class="btn btn-secundario">Cadastro</a>
-      </div>
-
-      <!-- Administrador -->
-      <div class="card-home">
-        <h2>Administrador</h2>
-        <p>Acesse o painel de controle do sistema.</p>
-        <a href="{{ url_for('login') }}" class="btn">Login</a>
-        <a href="{{ url_for('register_admin') }}" class="btn btn-secundario">Cadastro</a>
-      </div>
+  <!-- Banner -->
+  <section class="hero">
+    <div class="hero-text">
+      <!-- Aqui você pode colocar um título/CTA do salão -->
     </div>
-  </div>
+    <div class="hero-img">
+      <img src="{{ url_for('static', filename='imgs/mulher-notebook.png') }}" alt="Profissional com notebook">
+    </div>
+  </section>
+
+  <!-- Cards -->
+  <main class="cards-section">
+    <div class="cards-grid">
+      {% for prof in profissionais %}
+        <article class="card-medico">
+          <div class="card-foto">
+            <img src="{{ url_for('static', filename='imgs/' + (prof.foto_perfil or 'profissional1.png')) }}"
+                 alt="{{ prof.user.nome }}">
+          </div>
+          <div class="card-conteudo">
+            <h2>{{ prof.user.nome|upper }}</h2>
+            <h3>{{ prof.especialidades }}</h3>
+            <p>
+              Serviços:
+              {% if prof.servicos %}
+                {{ prof.servicos|map(attribute='nome')|join(', ') }}
+              {% else %}
+                Nenhum serviço cadastrado ainda.
+              {% endif %}
+            </p>
+          </div>
+        </article>
+      {% else %}
+        <p>Não há profissionais disponíveis no momento.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Rodapé com link discreto -->
+    <div class="landing-footer">
+      <p>© 2025 Seu Salão</p>
+      <p>
+        <a href="{{ url_for('login_restrito') }}">Área restrita</a>
+      </p>
+    </div>
+  </main>
 {% endblock %}

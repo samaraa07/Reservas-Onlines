@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Cadastro Área Restrita{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Cadastro (Admin / Profissional)</h2>
+    <form method="post" action="{{ url_for('cadastro_restrito') }}">
+      <input type="text" name="nome" placeholder="Nome" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="senha" placeholder="Senha" required>
+
+      <label for="tipo_user">Que tipo de usuário você é?</label>
+      <select id="tipo_user" name="tipo_user" required>
+        <option value="">Selecione...</option>
+        <option value="profissional">Profissional</option>
+        <option value="admin">Administrador</option>
+      </select>
+
+      <!-- Especialidades (apenas profissional) -->
+      <div id="especialidades_group" style="display:none; margin-top: 0.5rem;">
+        <input type="text" name="especialidades"
+               placeholder="Especialidades (separadas por vírgula)">
+      </div>
+
+      <!-- Foto de perfil (apenas profissional) -->
+      <div id="foto_perfil_group" style="display:none; margin-top: 0.5rem;">
+        <label for="foto_perfil">Foto de perfil</label>
+        <select id="foto_perfil" name="foto_perfil">
+          <option value="">Selecione uma imagem</option>
+          <option value="profissional1.png">Profissional 1</option>
+          <option value="profissional2.png">Profissional 2</option>
+          <option value="profissional3.png">Profissional 3</option>
+          <option value="profissional4.png">Profissional 4</option>
+          <option value="profissional5.png">Profissional 5</option>
+          <option value="profissional6.png">Profissional 6</option>
+        </select>
+      </div>
+
+      <button type="submit">Cadastrar</button>
+    </form>
+
+    <p style="margin-top:1rem;">
+      Já tem conta?
+      <a href="{{ url_for('login_restrito') }}">Fazer login</a>
+    </p>
+  </div>
+
+  <script>
+    const selectTipo = document.getElementById('tipo_user');
+    const espGroup = document.getElementById('especialidades_group');
+    const fotoGroup = document.getElementById('foto_perfil_group');
+
+    selectTipo.addEventListener('change', function () {
+      if (this.value === 'profissional') {
+        espGroup.style.display = 'block';
+        fotoGroup.style.display = 'block';
+      } else {
+        espGroup.style.display = 'none';
+        fotoGroup.style.display = 'none';
+      }
+    });
+  </script>
+{% endblock %}
