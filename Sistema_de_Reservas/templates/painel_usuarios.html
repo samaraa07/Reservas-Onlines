@@ -15,7 +15,18 @@
 <body class="bg-light">
 
     <div class="container py-5">
-        <h2 class="mb-4 text-center text-dark">Painel de Usuários</h2>
+        <!-- Título + botão de limpar -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0 text-dark">Painel de Usuários</h2>
+
+            <form method="post"
+                  action="{{ url_for('limpar_usuarios') }}"
+                  onsubmit="return confirm('Tem certeza que deseja excluir TODOS os usuários, exceto os admins padrão? Esta ação não pode ser desfeita.');">
+                <button type="submit" class="btn btn-sm btn-danger">
+                    Excluir todos os usuários (exceto admins padrão)
+                </button>
+            </form>
+        </div>
 
         <!-- Filtro de Usuários -->
         <div class="mb-4">
@@ -37,6 +48,8 @@
                             <th>Nome</th>
                             <th>Email</th>
                             <th>Perfil</th>
+                            <th>Status</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="userTableBody">
@@ -52,6 +65,55 @@
                                     <span class="badge bg-primary">Profissional</span>
                                 {% else %}
                                     <span class="badge bg-success">Cliente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.perfil == 'profissional' %}
+                                    {{ u.profissional.status|capitalize }}
+                                {% elif u.perfil == 'admin' %}
+                                    {{ u.administrador.status|capitalize }}
+                                {% else %}
+                                    {% if u.is_ativo %}Ativo{% else %}Inativo{% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set is_admin_padrao = u.perfil == 'admin' and u.email in [
+                                    'anafrancisca@gmail.com',
+                                    'estelaaurea@gmail.com',
+                                    'mariajesus@gmail.com',
+                                    'samarafernanda@gmail.com',
+                                    'sthefdantas@gmail.com'
+                                ] %}
+
+                                {% if is_admin_padrao %}
+                                    <span class="text-muted">Admin padrão</span>
+
+                                {% elif u.perfil == 'profissional' %}
+                                    {% if u.profissional.status == 'pendente' %}
+                                        <a href="{{ url_for('aprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-success">Aprovar</a>
+                                        <a href="{{ url_for('reprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
+                                    {% elif u.profissional.status == 'aprovado' %}
+                                        <a href="{{ url_for('reprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
+                                    {% elif u.profissional.status == 'reprovado' %}
+                                        <a href="{{ url_for('reconsiderar_profissional', user_id=u.id) }}" class="btn btn-sm btn-warning">Reconsiderar</a>
+                                    {% endif %}
+
+                                {% elif u.perfil == 'admin' %}
+                                    {% if u.administrador.status == 'pendente' %}
+                                        <a href="{{ url_for('aprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-success">Aprovar</a>
+                                        <a href="{{ url_for('reprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
+                                    {% elif u.administrador.status == 'aprovado' %}
+                                        <a href="{{ url_for('reprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
+                                    {% elif u.administrador.status == 'reprovado' %}
+                                        <a href="{{ url_for('reconsiderar_admin', user_id=u.id) }}" class="btn btn-sm btn-warning">Reconsiderar</a>
+                                    {% endif %}
+
+                                {% else %}
+                                    {% if u.is_ativo %}
+                                        <span class="text-muted">Ativo</span>
+                                    {% else %}
+                                        <span class="text-muted">Inativo</span>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                         </tr>

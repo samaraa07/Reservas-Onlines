@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from werkzeug.security import generate_password_hash
-from sqlalchemy import text  #necessário para usar comandos SQL diretos
+from sqlalchemy import text  # necessário para usar comandos SQL diretos
 from models import db, User, Administrador
 
 # ------------------------------------
@@ -46,14 +46,16 @@ with app.app_context():
             nome=nome,
             email=email,
             senha_hash=generate_password_hash(senha),
-            perfil='admin'
+            perfil='admin',
+            is_ativo=True  # admins padrão já ativos
         )
         db.session.add(user)
-        db.session.commit()  #precisa para gerar o usu_id
+        db.session.commit()  # precisa para gerar o usu_id
 
         admin = Administrador(
-            user_id=user.id,  # usa o atributo mapeado (usu_id)
-            nivel_acesso='geral'
+            user_id=user.id,   # usa o atributo mapeado (usu_id)
+            nivel_acesso='geral',
+            status='aprovado'  # admins padrão já aprovados
         )
         db.session.add(admin)
 
@@ -73,7 +75,10 @@ with app.app_context():
     usuarios = User.query.all()
     if usuarios:
         for u in usuarios:
-            print(f"ID: {u.id} | Nome: {u.nome} | Email: {u.email} | Perfil: {u.perfil}")
+            print(
+                f"ID: {u.id} | Nome: {u.nome} | Email: {u.email} | "
+                f"Perfil: {u.perfil} | Ativo: {u.is_ativo}"
+            )
     else:
         print("Nenhum usuário encontrado.")
 
@@ -82,7 +87,10 @@ with app.app_context():
     admins = Administrador.query.all()
     if admins:
         for a in admins:
-            print(f"Admin ID: {a.id} | Usuário ID: {a.user_id} | Nível: {a.nivel_acesso}")
+            print(
+                f"Admin ID: {a.id} | Usuário ID: {a.user_id} | "
+                f"Nível: {a.nivel_acesso} | Status: {a.status}"
+            )
     else:
         print("Nenhum administrador encontrado.")
 

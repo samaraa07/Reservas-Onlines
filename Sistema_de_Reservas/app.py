@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from dateutil import parser
 import os
 
+
 def create_app():
     app = Flask(__name__)
 
@@ -13,14 +14,15 @@ def create_app():
 
     # Caminho do banco de dados dentro da pasta 'banco_de_dados'
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'banco_de_dados', 'salon_reservas.db')}"
-    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'troque_essa_chave_para_producao'
 
     db.init_app(app)
     return app
 
+
 app = create_app()
+
 
 # -------------------------
 # Helpers
@@ -31,15 +33,16 @@ def current_user():
         return None
     return User.query.get(uid)
 
+
 def exige_login(func):
     from functools import wraps
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not current_user():
             return redirect(url_for('index'))
         return func(*args, **kwargs)
     return wrapper
+
 
 def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
     """Retorna True se há conflito (ou seja, horário ocupado)."""
@@ -55,6 +58,19 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
             return True
     return False
 
+
+def exige_admin(func):
+    from functools import wraps
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        u = current_user()
+        if not u or u.perfil != 'admin' or not u.administrador or u.administrador.status != 'aprovado':
+            flash("Apenas administradores podem realizar esta ação.", "danger")
+            return redirect(url_for('index'))
+        return func(*args, **kwargs)
+    return wrap
+
+
 # -------------------------
 # Rotas públicas
 # -------------------------
@@ -62,6 +78,7 @@ def checar_conflito(profissional_id, inicio: datetime, duracao_min: int):
 def index():
     user = current_user()
     return render_template('index.html', user=user)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -78,6 +95,46 @@ def login():
             flash("Senha incorreta. Tente novamente.", "danger")
             return redirect(url_for('login'))
 
+        # Regras de ativação/aprovação por perfil
+        if user.perfil == 'cliente':
+            if not user.is_ativo:
+                flash("Seu cadastro de cliente está inativo. Contate o administrador.", "warning")
+                return redirect(url_for('login'))
+
+        elif user.perfil == 'profissional':
+            if not user.profissional:
+                flash("Conta de profissional inválida. Contate o administrador.", "danger")
+                return redirect(url_for('login'))
+
+            if user.profissional.status == 'pendente':
+                flash("Seu cadastro de profissional ainda está em análise.", "warning")
+                return redirect(url_for('login'))
+
+            if user.profissional.status == 'reprovado':
+                flash("Esse profissional foi reprovado. Contate o administrador para mais informações.", "danger")
+                return redirect(url_for('login'))
+
+            if not user.is_ativo:
+                flash("Seu cadastro de profissional está inativo. Contate o administrador.", "danger")
+                return redirect(url_for('login'))
+
+        elif user.perfil == 'admin':
+            if not user.administrador:
+                flash("Conta de administrador inválida. Contate outro administrador.", "danger")
+                return redirect(url_for('login'))
+
+            if user.administrador.status == 'pendente':
+                flash("Seu cadastro de administrador ainda está em análise.", "warning")
+                return redirect(url_for('login'))
+
+            if user.administrador.status == 'reprovado':
+                flash("Esse administrador foi reprovado. Contate outro administrador.", "danger")
+                return redirect(url_for('login'))
+
+            if not user.is_ativo:
+                flash("Seu cadastro de administrador está inativo. Contate outro administrador.", "danger")
+                return redirect(url_for('login'))
+
         session['user_id'] = user.id
         flash(f"Bem-vindo(a), {user.nome}!", "success")
 
@@ -89,6 +146,7 @@ def login():
             return redirect(url_for('dashboard_cliente'))
 
     return render_template('login.html')
+
 
 # -------------------------
 # Cadastro Cliente
@@ -105,7 +163,7 @@ def register_cliente():
             return redirect(url_for('login'))
 
         senha_hash = generate_password_hash(senha)
-        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='cliente')
+        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='cliente', is_ativo=True)
         db.session.add(u)
         db.session.commit()
 
@@ -118,8 +176,9 @@ def register_cliente():
 
     return render_template('register_cliente.html')
 
+
 # -------------------------
-# Cadastro Profissional
+# Cadastro Profissional (pendente)
 # -------------------------
 @app.route('/register_profissional', methods=['GET', 'POST'])
 def register_profissional():
@@ -134,21 +193,34 @@ def register_profissional():
             return redirect(url_for('login'))
 
         senha_hash = generate_password_hash(senha)
-        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='profissional')
+        u = User(nome=nome, email=email, senha_hash=senha_hash, perfil='profissional', is_ativo=False)
         db.session.add(u)
         db.session.commit()
 
-        p = Profissional(especialidades=especialidades, user=u)
+        p = Profissional(especialidades=especialidades, user=u, status='pendente')
         db.session.add(p)
         db.session.commit()
 
-        flash("Cadastro de profissional realizado com sucesso! Agora faça login.", "success")
+        # Notificar admins aprovados sobre novo profissional
+        admins_aprovados = Administrador.query.filter_by(status='aprovado').all()
+        for adm in admins_aprovados:
+            msg = f"Novo profissional {u.nome} solicitou acesso."
+            db.session.add(Notificacao(
+                user_id=adm.user_id,
+                mensagem=msg,
+                tipo='pedido_profissional',
+                alvo_id=u.id
+            ))
+        db.session.commit()
+
+        flash("Cadastro de profissional enviado para aprovação. Você será notificado quando for liberado.", "info")
         return redirect(url_for('login'))
 
     return render_template('register_profissional.html')
 
+
 # -------------------------
-# Cadastro Administrador
+# Cadastro Administrador (pendente)
 # -------------------------
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
@@ -163,20 +235,31 @@ def register_admin():
 
         senha_hash = generate_password_hash(senha)
 
-        # Cria o usuário principal
-        user_admin = User(nome=nome, email=email, senha_hash=senha_hash, perfil='admin')
+        user_admin = User(nome=nome, email=email, senha_hash=senha_hash, perfil='admin', is_ativo=False)
         db.session.add(user_admin)
         db.session.commit()
 
-        # Cria também o registro na tabela Administradores
-        admin_sub = Administrador(user_id=user_admin.id, nivel_acesso="geral")
+        admin_sub = Administrador(user_id=user_admin.id, nivel_acesso="geral", status='pendente')
         db.session.add(admin_sub)
         db.session.commit()
 
-        flash("Cadastro de administrador realizado com sucesso! Agora faça login.", "success")
+        # Notificar admins aprovados sobre novo administrador
+        admins_aprovados = Administrador.query.filter_by(status='aprovado').all()
+        for adm in admins_aprovados:
+            msg = f"Novo administrador {user_admin.nome} solicitou acesso."
+            db.session.add(Notificacao(
+                user_id=adm.user_id,
+                mensagem=msg,
+                tipo='pedido_admin',
+                alvo_id=user_admin.id
+            ))
+        db.session.commit()
+
+        flash("Cadastro de administrador enviado para aprovação pelos administradores existentes.", "info")
         return redirect(url_for('login'))
 
     return render_template('register_admin.html')
+
 
 # -------------------------
 # Cadastro de Serviço (apenas para Profissionais)
@@ -204,11 +287,13 @@ def register_servico():
 
     return render_template('register_servico.html', user=u)  # Passando a variável user
 
+
 @app.route('/logout')
 def logout():
     session.clear()
     flash("Deslogado com sucesso.", "info")
     return redirect(url_for('index'))
+
 
 # -------------------------
 # Dashboards
@@ -222,6 +307,7 @@ def dashboard_cliente():
     servicos = Servico.query.all()
     return render_template('dashboard_cliente.html', user=u, servicos=servicos)
 
+
 @app.route('/dashboard/profissional')
 @exige_login
 def dashboard_profissional():
@@ -231,6 +317,7 @@ def dashboard_profissional():
     prof = u.profissional
     ags = Agendamento.query.filter_by(profissional_id=prof.id).order_by(Agendamento.data_hora.desc()).all()
     return render_template('dashboard_profissional.html', user=u, agendamentos=ags)
+
 
 @app.route('/dashboard/admin')
 @exige_login
@@ -253,6 +340,7 @@ def dashboard_admin():
         agendamentos=ags
     )
 
+
 # -------------------------
 # Reservas
 # -------------------------
@@ -264,7 +352,8 @@ def reservar():
         flash("Apenas clientes podem criar reservas.", "warning")
         return redirect(url_for('index'))
 
-    profissionais = Profissional.query.all()
+    # Apenas profissionais aprovados podem receber reservas
+    profissionais = Profissional.query.filter_by(status='aprovado').all()
     if not profissionais:
         flash("Não há profissionais disponíveis no momento para reserva.", "info")
         return redirect(url_for('dashboard_cliente'))
@@ -322,6 +411,7 @@ def reservar():
 
     return render_template('reservar.html', user=u, profissionais=profissionais)
 
+
 # -------------------------
 # API auxiliar
 # -------------------------
@@ -333,6 +423,26 @@ def servicos_por_profissional():
         return []
     servicos = Servico.query.filter_by(profissional_id=prof_id).all()
     return [{"id": s.id, "nome": s.nome, "duracao": s.duracao_min} for s in servicos]
+
+
+@app.route('/api/horarios_ocupados')
+@exige_login
+def horarios_ocupados():
+    prof_id = request.args.get('profissional_id', type=int)
+    data = request.args.get('data', type=str)
+    if not prof_id or not data:
+        return []
+    try:
+        base = parser.parse(data).date()
+    except Exception:
+        return []
+    ags = Agendamento.query.filter_by(profissional_id=prof_id).filter(Agendamento.status != 'cancelado').all()
+    ocupados = []
+    for a in ags:
+        if a.data_hora.date() == base:
+            ocupados.append(a.data_hora.strftime('%H:%M'))
+    return ocupados
+
 
 # -------------------------
 # Minhas reservas (cliente)
@@ -346,6 +456,7 @@ def minhas_reservas():
 
     ags = Agendamento.query.filter_by(cliente_id=u.cliente.id).order_by(Agendamento.data_hora.desc()).all()
     return render_template('minhas_reservas.html', user=u, agendamentos=ags)
+
 
 # -------------------------
 # Notificações
@@ -363,6 +474,7 @@ def notificacoes():
     notifs = query.all()
     return render_template('notificacoes.html', user=u, notificacoes=notifs)
 
+
 @app.route('/notificacao/ler/<int:notif_id>')
 @exige_login
 def marcar_lida(notif_id):
@@ -375,6 +487,118 @@ def marcar_lida(notif_id):
     notif.lida = True
     db.session.commit()
     return redirect(url_for('notificacoes'))
+
+
+# -------------------------
+# Aprovação/Reprovação de cadastros (somente admin)
+# -------------------------
+@app.route('/aprovar_admin/<int:user_id>')
+@exige_login
+@exige_admin
+def aprovar_admin(user_id):
+    u_target = User.query.get_or_404(user_id)
+    if not u_target.administrador:
+        flash("Usuário não é administrador.", "warning")
+        return redirect(url_for('notificacoes'))
+
+    u_target.is_ativo = True
+    u_target.administrador.status = 'aprovado'
+    db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de administrador foi aprovado."))
+    db.session.commit()
+    flash("Administrador aprovado.", "success")
+    return redirect(url_for('notificacoes'))
+
+
+@app.route('/reprovar_admin/<int:user_id>')
+@exige_login
+@exige_admin
+def reprovar_admin(user_id):
+    u_target = User.query.get_or_404(user_id)
+    if not u_target.administrador:
+        flash("Usuário não é administrador.", "warning")
+        return redirect(url_for('notificacoes'))
+
+    u_target.is_ativo = False
+    u_target.administrador.status = 'reprovado'
+    db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de administrador foi reprovado."))
+    db.session.commit()
+    flash("Administrador reprovado.", "info")
+    return redirect(url_for('notificacoes'))
+
+
+@app.route('/aprovar_profissional/<int:user_id>')
+@exige_login
+@exige_admin
+def aprovar_profissional(user_id):
+    u_target = User.query.get_or_404(user_id)
+    if not u_target.profissional:
+        flash("Usuário não é profissional.", "warning")
+        return redirect(url_for('notificacoes'))
+
+    u_target.is_ativo = True
+    u_target.profissional.status = 'aprovado'
+    db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de profissional foi aprovado."))
+    db.session.commit()
+    flash("Profissional aprovado.", "success")
+    return redirect(url_for('notificacoes'))
+
+
+@app.route('/reprovar_profissional/<int:user_id>')
+@exige_login
+@exige_admin
+def reprovar_profissional(user_id):
+    u_target = User.query.get_or_404(user_id)
+    if not u_target.profissional:
+        flash("Usuário não é profissional.", "warning")
+        return redirect(url_for('notificacoes'))
+
+    u_target.is_ativo = False
+    u_target.profissional.status = 'reprovado'
+    db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de profissional foi reprovado."))
+    db.session.commit()
+    flash("Profissional reprovado.", "info")
+    return redirect(url_for('notificacoes'))
+
+
+@app.route('/reconsiderar_profissional/<int:user_id>')
+@exige_login
+@exige_admin
+def reconsiderar_profissional(user_id):
+    u_target = User.query.get_or_404(user_id)
+    if not u_target.profissional:
+        flash("Usuário não é profissional.", "warning")
+        return redirect(url_for('painel_usuarios'))
+
+    u_target.profissional.status = 'pendente'
+    u_target.is_ativo = False
+    db.session.add(Notificacao(
+        user_id=u_target.id,
+        mensagem="Seu cadastro de profissional foi reconsiderado e está novamente em análise."
+    ))
+    db.session.commit()
+    flash("Profissional movido para pendente.", "info")
+    return redirect(url_for('painel_usuarios'))
+
+
+@app.route('/reconsiderar_admin/<int:user_id>')
+@exige_login
+@exige_admin
+def reconsiderar_admin(user_id):
+    u_target = User.query.get_or_404(user_id)
+    if not u_target.administrador:
+        flash("Usuário não é administrador.", "warning")
+        return redirect(url_for('painel_usuarios'))
+
+    u_target.administrador.status = 'pendente'
+    u_target.is_ativo = False
+    db.session.add(Notificacao(
+        user_id=u_target.id,
+        mensagem="Seu cadastro de administrador foi reconsiderado e está novamente em análise."
+    ))
+    db.session.commit()
+    flash("Administrador movido para pendente.", "info")
+    return redirect(url_for('painel_usuarios'))
+
 
 # -------------------------
 # Ações confirmar/cancelar agendamento
@@ -390,7 +614,10 @@ def confirmar_agendamento(ag_id):
 
     ag.status = 'confirmado'
 
-    mensagem_confirmacao = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi confirmado!"
+    mensagem_confirmacao = (
+        f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} "
+        f"em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi confirmado!"
+    )
     nova_notif = Notificacao(user_id=ag.cliente.user.id, mensagem=mensagem_confirmacao)
 
     try:
@@ -403,6 +630,7 @@ def confirmar_agendamento(ag_id):
         flash("Agendamento confirmado, mas houve um erro ao enviar a notificação.", "warning")
 
     return redirect(request.referrer or url_for('index'))
+
 
 @app.route('/agendamento/cancelar/<int:ag_id>')
 @exige_login
@@ -419,7 +647,10 @@ def cancelar_agendamento(ag_id):
 
     ag.status = 'cancelado'
 
-    cancelamento_mensagem = f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."
+    cancelamento_mensagem = (
+        f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} "
+        f"em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi cancelado."
+    )
     nova_notif = Notificacao(user_id=ag.cliente.user.id, mensagem=cancelamento_mensagem)
 
     try:
@@ -432,6 +663,7 @@ def cancelar_agendamento(ag_id):
         flash("Agendamento cancelado, mas houve um erro ao enviar a notificação.", "warning")
 
     return redirect(request.referrer or url_for('index'))
+
 
 # -------------------------
 # Painel de Usuários (somente administradores)
@@ -447,13 +679,43 @@ def painel_usuarios():
     usuarios = User.query.all()
     return render_template('painel_usuarios.html', user=u, usuarios=usuarios)
 
+
+# -------------------------
+# Limpar usuários (exceto admins padrão)
+# -------------------------
+@app.route('/admin/usuarios/limpar', methods=['POST'])
+@exige_login
+@exige_admin
+def limpar_usuarios():
+    admins_padrao_emails = [
+        "anafrancisca@gmail.com",
+        "estelaaurea@gmail.com",
+        "mariajesus@gmail.com",
+        "samarafernanda@gmail.com",
+        "sthefdantas@gmail.com",
+    ]
+
+    usuarios_para_apagar = User.query.filter(
+        ~User.email.in_(admins_padrao_emails)
+    ).all()
+
+    for u in usuarios_para_apagar:
+        db.session.delete(u)
+
+    db.session.commit()
+
+    flash("Todos os usuários (exceto os administradores padrão) foram removidos.", "info")
+    return redirect(url_for('painel_usuarios'))
+
+
 # -------------------------
 # Fallback
 # -------------------------
 @app.route('/register')
 def register_fallback():
-    flash("Use as páginas corretas de cadastro: Cliente ou Profissional.", "info")
+    flash("Use as páginas corretas de cadastro: Cliente, Profissional ou Administrador.", "info")
     return redirect(url_for('index'))
+
 
 # -------------------------
 # Run

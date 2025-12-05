@@ -14,8 +14,14 @@
       {% for n in notificacoes %}
         <li {% if not n.lida %}class="nao-lida"{% endif %}>
           {{ n.criado_em.strftime('%d/%m/%Y %H:%M') }} — {{ n.mensagem }}
-          {% if not n.lida %}
-            <a href="{{ url_for('marcar_lida', notif_id=n.id) }}">Marcar como lida</a>
+
+          {# Botões de aprovação / reprovação visíveis apenas para admins #}
+          {% if user.perfil == 'admin' and n.tipo == 'pedido_admin' %}
+            <a href="{{ url_for('aprovar_admin', user_id=n.alvo_id) }}" class="btn btn-success">Aprovar</a>
+            <a href="{{ url_for('reprovar_admin', user_id=n.alvo_id) }}" class="btn btn-danger">Reprovar</a>
+          {% elif user.perfil == 'admin' and n.tipo == 'pedido_profissional' %}
+            <a href="{{ url_for('aprovar_profissional', user_id=n.alvo_id) }}" class="btn btn-success">Aprovar</a>
+            <a href="{{ url_for('reprovar_profissional', user_id=n.alvo_id) }}" class="btn btn-danger">Reprovar</a>
           {% endif %}
         </li>
       {% endfor %}

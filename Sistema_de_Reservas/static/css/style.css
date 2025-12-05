@@ -31,6 +31,7 @@ body {
   background-position: center;
 }
 
+
 /* =========================
    CONTAINER
 ========================= */
@@ -39,6 +40,7 @@ body {
   margin: 2rem auto;
   padding: 1rem;
 }
+
 
 /* =========================
    NAVEGAÇÃO
@@ -71,6 +73,7 @@ body {
   font-style: italic;
 }
 
+
 /* =========================
    BOTÕES
 ========================= */
@@ -90,6 +93,58 @@ button:hover, .btn:hover {
   background: var(--cor-destaque);
   transform: scale(1.05);
 }
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin: 0.2rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* Botão secundário genérico */
+.btn-secundario {
+  background: var(--cor-secundaria);
+  color: var(--cor-primaria);
+  border: 1px solid var(--cor-primaria);
+}
+
+.btn-secundario:hover {
+  background: var(--cor-destaque);
+  color: #fff;
+  border-color: var(--cor-destaque);
+}
+
+/* Botões de ação específicos (Aprovar / Reprovar / Reconsiderar) */
+.btn-success {
+  background: #28a745;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background: #218838;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
 
 /* =========================
    FORMULÁRIOS
@@ -124,6 +179,7 @@ label {
   color: var(--cor-primaria);
 }
 
+
 /* =========================
    LISTAS E CARDS
 ========================= */
@@ -145,6 +201,7 @@ ul li, .card {
   color: var(--cor-primaria);
 }
 
+
 /* =========================
    FLASH MESSAGES
 ========================= */
@@ -162,9 +219,10 @@ ul li, .card {
 }
 
 .flash.success { background: var(--cor-sucesso); color: #155724; }
-.flash.danger  { background: var(--cor-perigo); color: #721c24; }
-.flash.warning { background: var(--cor-aviso); color: #856404; }
-.flash.info    { background: var(--cor-info); color: #0c5460; }
+.flash.danger  { background: var(--cor-perigo);  color: #721c24; }
+.flash.warning { background: var(--cor-aviso);   color: #856404; }
+.flash.info    { background: var(--cor-info);    color: #0c5460; }
+
 
 /* =========================
    TÍTULOS
@@ -174,6 +232,7 @@ h1, h2, h3 {
   margin-bottom: 1rem;
 }
 
+
 /* =========================
    LINKS
 ========================= */
@@ -181,27 +240,9 @@ a {
   text-decoration: none;
   color: #0066cc;
 }
+
 a:hover {
   text-decoration: underline;
-}
-
-.btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  margin: 0.2rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn-secundario {
-  background: #eee;
-  color: #333;
-  border: 1px solid #ccc;
-}
-.btn-secundario:hover {
-  background: #ddd;
 }
 
 
@@ -248,6 +289,7 @@ li a {
   margin-left: 1rem;
   color: #0077cc;
 }
+
 li a:hover {
   text-decoration: underline;
 }
@@ -296,19 +338,6 @@ li a:hover {
   text-align: center;
 }
 
-/* Botão secundário */
-.btn-secundario {
-  background: var(--cor-secundaria);
-  color: var(--cor-primaria);
-  border: 1px solid var(--cor-primaria);
-}
-
-.btn-secundario:hover {
-  background: var(--cor-destaque);
-  color: #fff;
-  border-color: var(--cor-destaque);
-}
-
 
 /* =========================
    RESPONSIVIDADE
@@ -326,12 +355,11 @@ li a:hover {
 
   body {
     background-image: url('../imgs/plano_de_fundo(2).jpg');
-    background-size: cover; 
-    background-position: center center; 
-    background-repeat: no-repeat; 
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
     min-height: 100vh;
   }
-
 }
 
 @media (max-width: 600px) {
@@ -357,5 +385,3 @@ li a:hover {
     margin: 0.3rem 0;
   }
 }
-
-
