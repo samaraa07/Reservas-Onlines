@@ -48,12 +48,14 @@ body {
 .nav {
   background: var(--cor-primaria);
   color: #fff;
-  padding: 0.8rem 1.5rem;
+  padding: 0.5rem 1.4rem;
   display: flex;
   gap: 1.5rem;
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: 90px;
+  position: relative;
 }
 
 .nav-logo {
