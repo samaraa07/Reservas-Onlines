@@ -1,0 +1,238 @@
+/* =========================
+   RESERVAR STYLES
+========================= */
+
+.reservar-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.reservar-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.reservar-header h1 {
+  font-size: 2.5rem;
+  color: var(--cor-primaria);
+  margin-bottom: 0.5rem;
+}
+
+.reservar-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.reservar-form {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--cor-primaria);
+  margin-bottom: 0.8rem;
+}
+
+.form-select,
+.form-input {
+  width: 100%;
+  padding: 0.9rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.form-select:focus,
+.form-input:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.1);
+}
+
+.form-select:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.servico-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid var(--cor-primaria);
+}
+
+.servico-info p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+/* Horários Disponíveis */
+.horarios-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  min-height: 150px;
+}
+
+.horario-btn {
+  padding: 0.8rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.horario-btn.disponivel:hover {
+  background: var(--cor-primaria);
+  color: #fff;
+  border-color: var(--cor-primaria);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.horario-btn.selecionado {
+  background: var(--cor-primaria);
+  color: #fff;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 4px 12px rgba(139, 94, 60, 0.3);
+}
+
+.horario-btn.ocupado {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.info-text,
+.loading {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.error-text {
+  text-align: center;
+  color: #dc3545;
+  padding: 2rem;
+}
+
+/* Resumo da Reserva */
+.resumo-reserva {
+  background: linear-gradient(135deg, #8B5E3C 0%, #A67C52 100%);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  color: #fff;
+}
+
+.resumo-reserva h3 {
+  color: #fff;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.resumo-content p {
+  margin: 0.8rem 0;
+  font-size: 1.1rem;
+}
+
+.resumo-content strong {
+  display: inline-block;
+  min-width: 120px;
+}
+
+/* Botão Submit */
+.btn-submit {
+  width: 100%;
+  padding: 1.2rem;
+  background: var(--cor-primaria);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1.5rem;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #6B4528;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 94, 60, 0.3);
+}
+
+.btn-submit:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.empty-state p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .reservar-header h1 {
+    font-size: 2rem;
+  }
+
+  .reservar-form {
+    padding: 1.5rem;
+  }
+
+  .horarios-container {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .horario-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .resumo-content p {
+    font-size: 1rem;
+  }
+
+  .resumo-content strong {
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+}
+

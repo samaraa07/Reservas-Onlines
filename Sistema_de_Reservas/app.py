@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_mail import Mail, Message
 from models import db, User, Cliente, Profissional, Servico, Agendamento, Notificacao, Administrador
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
@@ -17,11 +18,45 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'troque_essa_chave_para_producao'
 
+    # Configuração do Flask-Mail
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+
     db.init_app(app)
     return app
 
 
 app = create_app()
+mail = Mail(app)
+
+
+# -------------------------
+# Helper para envio de e-mail
+# -------------------------
+def enviar_email(destinatario, assunto, corpo_html, corpo_texto=None):
+    """Envia um e-mail. Retorna True se sucesso, False caso contrário."""
+    try:
+        if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
+            # Se não configurado, apenas loga (para desenvolvimento)
+            print(f"[EMAIL SIMULADO] Para: {destinatario}, Assunto: {assunto}")
+            print(f"[EMAIL SIMULADO] Corpo: {corpo_texto or corpo_html}")
+            return True
+        
+        msg = Message(
+            subject=assunto,
+            recipients=[destinatario],
+            html=corpo_html,
+            body=corpo_texto
+        )
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
+        return False
 
 
 # -------------------------
@@ -461,8 +496,35 @@ def dashboard_cliente():
     u = current_user()
     if u.perfil != 'cliente':
         return redirect(url_for('index'))
+    
+    # Buscar agendamentos do cliente
+    agendamentos = Agendamento.query.filter_by(cliente_id=u.cliente.id).order_by(Agendamento.data_hora.desc()).all()
+    
+    # Estatísticas
+    agora = datetime.now()
+    proximos = [a for a in agendamentos if a.data_hora > agora and a.status != 'cancelado']
+    passados = [a for a in agendamentos if a.data_hora <= agora or a.status == 'cancelado']
+    pendentes = [a for a in agendamentos if a.status == 'pendente']
+    confirmados = [a for a in agendamentos if a.status == 'confirmado']
+    
+    # Próximo agendamento
+    proximo_agendamento = proximos[0] if proximos else None
+    
+    # Adicionar flag para verificar se pode cancelar (agendamentos futuros)
+    for ag in agendamentos:
+        ag.pode_cancelar = ag.data_hora > agora and ag.status != 'cancelado'
+    
     servicos = Servico.query.all()
-    return render_template('dashboard_cliente.html', user=u, servicos=servicos)
+    return render_template('dashboard_cliente.html', 
+                         user=u, 
+                         servicos=servicos,
+                         agendamentos=agendamentos,
+                         proximo_agendamento=proximo_agendamento,
+                         total_agendamentos=len(agendamentos),
+                         proximos=len(proximos),
+                         pendentes=len(pendentes),
+                         confirmados=len(confirmados),
+                         agora=agora)
 
 
 @app.route('/dashboard/profissional')
@@ -473,7 +535,28 @@ def dashboard_profissional():
         return redirect(url_for('index'))
     prof = u.profissional
     ags = Agendamento.query.filter_by(profissional_id=prof.id).order_by(Agendamento.data_hora.desc()).all()
-    return render_template('dashboard_profissional.html', user=u, agendamentos=ags)
+    
+    # Estatísticas
+    agora = datetime.now()
+    hoje = datetime.now().date()
+    
+    agendamentos_hoje = [a for a in ags if a.data_hora.date() == hoje and a.status != 'cancelado']
+    agendamentos_semana = [a for a in ags if a.data_hora.date() >= hoje and a.data_hora.date() <= (hoje + timedelta(days=7)) and a.status != 'cancelado']
+    pendentes = [a for a in ags if a.status == 'pendente']
+    confirmados = [a for a in ags if a.status == 'confirmado']
+    
+    # Próximos agendamentos
+    proximos = [a for a in ags if a.data_hora > agora and a.status != 'cancelado'][:5]
+    
+    return render_template('dashboard_profissional.html', 
+                         user=u, 
+                         agendamentos=ags,
+                         agendamentos_hoje=len(agendamentos_hoje),
+                         agendamentos_semana=len(agendamentos_semana),
+                         pendentes=len(pendentes),
+                         confirmados=len(confirmados),
+                         proximos=proximos,
+                         total_servicos=len(prof.servicos))
 
 
 @app.route('/dashboard/admin')
@@ -560,10 +643,41 @@ def reservar():
             reserva_mensagem = f"Novo agendamento pendente de {u.nome} para {servico.nome} em {dt.strftime('%d/%m/%Y %H:%M')}."
             notif_prof = Notificacao(user_id=profissional.user.id, mensagem=reserva_mensagem)
             db.session.add(notif_prof)
+            db.session.commit()
 
-        db.session.commit()
+        # Enviar e-mail de confirmação para o cliente
+        assunto = "Reserva Criada com Sucesso"
+        corpo_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #8B5E3C;">Reserva Criada com Sucesso!</h2>
+                <p>Olá, <strong>{u.nome}</strong>!</p>
+                <p>Sua reserva foi criada e está aguardando confirmação do profissional.</p>
+                
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #8B5E3C; margin-top: 0;">Detalhes da Reserva:</h3>
+                    <p><strong>Profissional:</strong> {profissional.user.nome}</p>
+                    <p><strong>Serviço:</strong> {servico.nome}</p>
+                    <p><strong>Data e Hora:</strong> {dt.strftime('%d/%m/%Y às %H:%M')}</p>
+                    <p><strong>Duração:</strong> {servico.duracao_min} minutos</p>
+                    {f'<p><strong>Preço:</strong> R$ {servico.preco:.2f}</p>' if servico.preco else ''}
+                    <p><strong>Status:</strong> Pendente de confirmação</p>
+                </div>
+                
+                <p>Você receberá uma notificação quando o profissional confirmar ou cancelar sua reserva.</p>
+                <p>Acesse o sistema para acompanhar seus agendamentos: <a href="{request.url_root}minhas-reservas">Minhas Reservas</a></p>
+                
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="color: #666; font-size: 0.9em;">Este é um e-mail automático, por favor não responda.</p>
+                <p style="color: #666; font-size: 0.9em;">Atenciosamente,<br>Equipe do Sistema de Reservas</p>
+            </div>
+        </body>
+        </html>
+        """
+        enviar_email(u.email, assunto, corpo_html)
 
-        flash("Reserva criada com sucesso e enviada para confirmação.", "success")
+        flash("Reserva criada com sucesso! Um e-mail de confirmação foi enviado.", "success")
         return redirect(url_for('minhas_reservas'))
 
     return render_template('reservar.html', user=u, profissionais=profissionais)
@@ -579,7 +693,7 @@ def servicos_por_profissional():
     if not prof_id:
         return []
     servicos = Servico.query.filter_by(profissional_id=prof_id).all()
-    return [{"id": s.id, "nome": s.nome, "duracao": s.duracao_min} for s in servicos]
+    return [{"id": s.id, "nome": s.nome, "duracao": s.duracao_min, "preco": s.preco or 0} for s in servicos]
 
 
 @app.route('/api/horarios_ocupados')
@@ -611,8 +725,14 @@ def minhas_reservas():
     if u.perfil != 'cliente':
         return redirect(url_for('index'))
 
+    agora = datetime.now()
     ags = Agendamento.query.filter_by(cliente_id=u.cliente.id).order_by(Agendamento.data_hora.desc()).all()
-    return render_template('minhas_reservas.html', user=u, agendamentos=ags)
+    
+    # Adicionar flag para verificar se pode cancelar (agendamentos futuros)
+    for ag in ags:
+        ag.pode_cancelar = ag.data_hora > agora and ag.status != 'cancelado'
+    
+    return render_template('minhas_reservas.html', user=u, agendamentos=ags, agora=agora)
 
 
 # -------------------------
@@ -629,7 +749,11 @@ def notificacoes():
         query = query.filter_by(lida=False)
 
     notifs = query.all()
-    return render_template('notificacoes.html', user=u, notificacoes=notifs)
+    
+    # Contar notificações não lidas para o botão "marcar todas"
+    nao_lidas_count = sum(1 for n in notifs if not n.lida)
+    
+    return render_template('notificacoes.html', user=u, notificacoes=notifs, nao_lidas_count=nao_lidas_count)
 
 
 @app.route('/notificacao/ler/<int:notif_id>')
@@ -643,6 +767,24 @@ def marcar_lida(notif_id):
 
     notif.lida = True
     db.session.commit()
+    flash("Notificação marcada como lida.", "success")
+    return redirect(url_for('notificacoes'))
+
+
+@app.route('/notificacoes/marcar-todas-lidas')
+@exige_login
+def marcar_todas_lidas():
+    u = current_user()
+    notificacoes_nao_lidas = Notificacao.query.filter_by(user_id=u.id, lida=False).all()
+    
+    if notificacoes_nao_lidas:
+        for notif in notificacoes_nao_lidas:
+            notif.lida = True
+        db.session.commit()
+        flash(f"{len(notificacoes_nao_lidas)} notificação(ões) marcada(s) como lida(s).", "success")
+    else:
+        flash("Não há notificações não lidas para marcar.", "info")
+    
     return redirect(url_for('notificacoes'))
 
 
@@ -662,7 +804,24 @@ def aprovar_admin(user_id):
     u_target.administrador.status = 'aprovado'
     db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de administrador foi aprovado."))
     db.session.commit()
-    flash("Administrador aprovado.", "success")
+    
+    # Enviar e-mail de aprovação
+    assunto = "Cadastro de Administrador Aprovado"
+    corpo_html = f"""
+    <html>
+    <body>
+        <h2>Parabéns, {u_target.nome}!</h2>
+        <p>Seu cadastro como administrador foi <strong>aprovado</strong>.</p>
+        <p>Agora você pode fazer login e acessar o painel administrativo.</p>
+        <p>Acesse o sistema: <a href="{request.url_root}login">Fazer Login</a></p>
+        <br>
+        <p>Atenciosamente,<br>Equipe do Sistema de Reservas</p>
+    </body>
+    </html>
+    """
+    enviar_email(u_target.email, assunto, corpo_html)
+    
+    flash("Administrador aprovado e notificado por e-mail.", "success")
     return redirect(url_for('notificacoes'))
 
 
@@ -679,7 +838,23 @@ def reprovar_admin(user_id):
     u_target.administrador.status = 'reprovado'
     db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de administrador foi reprovado."))
     db.session.commit()
-    flash("Administrador reprovado.", "info")
+    
+    # Enviar e-mail de reprovação
+    assunto = "Cadastro de Administrador Reprovado"
+    corpo_html = f"""
+    <html>
+    <body>
+        <h2>Olá, {u_target.nome}</h2>
+        <p>Infelizmente, seu cadastro como administrador foi <strong>reprovado</strong>.</p>
+        <p>Para mais informações, entre em contato com outros administradores do sistema.</p>
+        <br>
+        <p>Atenciosamente,<br>Equipe do Sistema de Reservas</p>
+    </body>
+    </html>
+    """
+    enviar_email(u_target.email, assunto, corpo_html)
+    
+    flash("Administrador reprovado e notificado por e-mail.", "info")
     return redirect(url_for('notificacoes'))
 
 
@@ -696,7 +871,24 @@ def aprovar_profissional(user_id):
     u_target.profissional.status = 'aprovado'
     db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de profissional foi aprovado."))
     db.session.commit()
-    flash("Profissional aprovado.", "success")
+    
+    # Enviar e-mail de aprovação
+    assunto = "Cadastro de Profissional Aprovado"
+    corpo_html = f"""
+    <html>
+    <body>
+        <h2>Parabéns, {u_target.nome}!</h2>
+        <p>Seu cadastro como profissional foi <strong>aprovado</strong> pelo administrador.</p>
+        <p>Agora você pode fazer login e começar a gerenciar seus serviços e agendamentos.</p>
+        <p>Acesse o sistema: <a href="{request.url_root}login">Fazer Login</a></p>
+        <br>
+        <p>Atenciosamente,<br>Equipe do Sistema de Reservas</p>
+    </body>
+    </html>
+    """
+    enviar_email(u_target.email, assunto, corpo_html)
+    
+    flash("Profissional aprovado e notificado por e-mail.", "success")
     return redirect(url_for('notificacoes'))
 
 
@@ -713,7 +905,23 @@ def reprovar_profissional(user_id):
     u_target.profissional.status = 'reprovado'
     db.session.add(Notificacao(user_id=u_target.id, mensagem="Seu cadastro de profissional foi reprovado."))
     db.session.commit()
-    flash("Profissional reprovado.", "info")
+    
+    # Enviar e-mail de reprovação
+    assunto = "Cadastro de Profissional Reprovado"
+    corpo_html = f"""
+    <html>
+    <body>
+        <h2>Olá, {u_target.nome}</h2>
+        <p>Infelizmente, seu cadastro como profissional foi <strong>reprovado</strong> pelo administrador.</p>
+        <p>Para mais informações, entre em contato com a administração do sistema.</p>
+        <br>
+        <p>Atenciosamente,<br>Equipe do Sistema de Reservas</p>
+    </body>
+    </html>
+    """
+    enviar_email(u_target.email, assunto, corpo_html)
+    
+    flash("Profissional reprovado e notificado por e-mail.", "info")
     return redirect(url_for('notificacoes'))
 
 @app.route('/reconsiderar_profissional/<int:user_id>')
@@ -768,22 +976,61 @@ def confirmar_agendamento(ag_id):
         flash("Ação não permitida.", "danger")
         return redirect(url_for('index'))
 
+    # Atualizar status para confirmado
     ag.status = 'confirmado'
 
+    # Criar notificação para o cliente
     mensagem_confirmacao = (
-        f"Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} "
-        f"em {ag.data_hora.strftime('%d/%m/%Y %H:%M')} foi confirmado!"
+        f"✅ Seu agendamento de {ag.servico.nome} com {ag.profissional.user.nome} "
+        f"em {ag.data_hora.strftime('%d/%m/%Y às %H:%M')} foi CONFIRMADO e está marcado!"
     )
     nova_notif = Notificacao(user_id=ag.cliente.user.id, mensagem=mensagem_confirmacao)
 
     try:
         db.session.add(nova_notif)
         db.session.commit()
-        flash("Agendamento confirmado.", "success")
+        
+        # Enviar e-mail de confirmação para o cliente
+        assunto = "Agendamento Confirmado - Reserva Marcada"
+        corpo_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #28a745;">✅ Agendamento Confirmado!</h2>
+                <p>Olá, <strong>{ag.cliente.user.nome}</strong>!</p>
+                <p style="font-size: 1.1em; color: #28a745; font-weight: bold;">
+                    Seu agendamento foi <strong>CONFIRMADO</strong> pelo profissional e está marcado!
+                </p>
+                
+                <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #155724; margin-top: 0;">📅 Detalhes do Agendamento Confirmado:</h3>
+                    <p><strong>Profissional:</strong> {ag.profissional.user.nome}</p>
+                    <p><strong>Serviço:</strong> {ag.servico.nome}</p>
+                    <p><strong>Data e Hora:</strong> {ag.data_hora.strftime('%d/%m/%Y às %H:%M')}</p>
+                    <p><strong>Duração:</strong> {ag.servico.duracao_min} minutos</p>
+                    {f'<p><strong>Preço:</strong> R$ {ag.servico.preco:.2f}</p>' if ag.servico.preco else ''}
+                    <p style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #c3e6cb;">
+                        <strong style="color: #155724;">Status: ✅ CONFIRMADO E MARCADO</strong>
+                    </p>
+                </div>
+                
+                <p>Seu agendamento está confirmado e marcado. Lembre-se de comparecer no horário agendado!</p>
+                <p>Acesse o sistema para ver todos os seus agendamentos: <a href="{request.url_root}minhas-reservas" style="color: #8B5E3C;">Minhas Reservas</a></p>
+                
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="color: #666; font-size: 0.9em;">Este é um e-mail automático, por favor não responda.</p>
+                <p style="color: #666; font-size: 0.9em;">Atenciosamente,<br>Equipe do Sistema de Reservas</p>
+            </div>
+        </body>
+        </html>
+        """
+        enviar_email(ag.cliente.user.email, assunto, corpo_html)
+        
+        flash("Agendamento confirmado e cliente notificado por e-mail.", "success")
     except Exception as e:
         db.session.rollback()
-        print(f"ERRO AO CRIAR NOTIFICAÇÃO DE CONFIRMAÇÃO: {e}")
-        flash("Agendamento confirmado, mas houve um erro ao enviar a notificação.", "warning")
+        print(f"ERRO AO CONFIRMAR AGENDAMENTO: {e}")
+        flash("Agendamento confirmado, mas houve um erro ao enviar a notificação/e-mail.", "warning")
 
     return redirect(request.referrer or url_for('index'))
 
@@ -861,6 +1108,121 @@ def limpar_usuarios():
     db.session.commit()
 
     flash("Todos os usuários (exceto os administradores padrão) foram removidos.", "info")
+    return redirect(url_for('painel_usuarios'))
+
+
+# -------------------------
+# CRUD de Usuários (somente administradores)
+# -------------------------
+@app.route('/admin/usuarios/criar', methods=['GET', 'POST'])
+@exige_login
+@exige_admin
+def criar_usuario():
+    u = current_user()
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+        perfil = request.form['perfil']
+        especialidades = request.form.get('especialidades', '')
+        
+        if User.query.filter_by(email=email).first():
+            flash("Email já cadastrado.", "warning")
+            return redirect(url_for('criar_usuario'))
+        
+        senha_hash = generate_password_hash(senha)
+        novo_user = User(nome=nome, email=email, senha_hash=senha_hash, perfil=perfil, is_ativo=True)
+        db.session.add(novo_user)
+        db.session.commit()
+        
+        if perfil == 'cliente':
+            c = Cliente(user=novo_user)
+            db.session.add(c)
+        elif perfil == 'profissional':
+            p = Profissional(user=novo_user, especialidades=especialidades, status='aprovado')
+            db.session.add(p)
+        elif perfil == 'admin':
+            adm = Administrador(user_id=novo_user.id, nivel_acesso="geral", status='aprovado')
+            db.session.add(adm)
+        
+        db.session.commit()
+        flash(f"Usuário {nome} criado com sucesso!", "success")
+        return redirect(url_for('painel_usuarios'))
+    
+    return render_template('criar_usuario.html', user=u)
+
+
+@app.route('/admin/usuarios/editar/<int:user_id>', methods=['GET', 'POST'])
+@exige_login
+@exige_admin
+def editar_usuario(user_id):
+    u = current_user()
+    u_target = User.query.get_or_404(user_id)
+    
+    # Proteger admins padrão
+    admins_padrao_emails = [
+        "anafrancisca@gmail.com",
+        "estelaaurea@gmail.com",
+        "mariajesus@gmail.com",
+        "samarafernanda@gmail.com",
+        "sthefdantas@gmail.com",
+    ]
+    if u_target.email in admins_padrao_emails:
+        flash("Não é possível editar administradores padrão.", "warning")
+        return redirect(url_for('painel_usuarios'))
+    
+    if request.method == 'POST':
+        u_target.nome = request.form['nome']
+        novo_email = request.form['email']
+        
+        # Verificar se o email já existe em outro usuário
+        if novo_email != u_target.email:
+            if User.query.filter_by(email=novo_email).first():
+                flash("Email já cadastrado para outro usuário.", "warning")
+                return redirect(url_for('editar_usuario', user_id=user_id))
+            u_target.email = novo_email
+        
+        # Atualizar senha se fornecida
+        if request.form.get('senha'):
+            u_target.senha_hash = generate_password_hash(request.form['senha'])
+        
+        # Atualizar campos específicos do perfil
+        if u_target.perfil == 'profissional' and u_target.profissional:
+            u_target.profissional.especialidades = request.form.get('especialidades', '')
+        
+        # Atualizar status de ativação
+        u_target.is_ativo = request.form.get('is_ativo') == 'on'
+        
+        db.session.commit()
+        flash(f"Usuário {u_target.nome} atualizado com sucesso!", "success")
+        return redirect(url_for('painel_usuarios'))
+    
+    return render_template('editar_usuario.html', user=u, usuario_editado=u_target)
+
+
+@app.route('/admin/usuarios/excluir/<int:user_id>', methods=['POST'])
+@exige_login
+@exige_admin
+def excluir_usuario(user_id):
+    u_target = User.query.get_or_404(user_id)
+    
+    # Proteger admins padrão
+    admins_padrao_emails = [
+        "anafrancisca@gmail.com",
+        "estelaaurea@gmail.com",
+        "mariajesus@gmail.com",
+        "samarafernanda@gmail.com",
+        "sthefdantas@gmail.com",
+    ]
+    if u_target.email in admins_padrao_emails:
+        flash("Não é possível excluir administradores padrão.", "warning")
+        return redirect(url_for('painel_usuarios'))
+    
+    nome_usuario = u_target.nome
+    db.session.delete(u_target)
+    db.session.commit()
+    
+    flash(f"Usuário {nome_usuario} excluído com sucesso!", "success")
     return redirect(url_for('painel_usuarios'))
 
 

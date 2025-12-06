@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Editar Usuário{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Editar Usuário: {{ usuario_editado.nome }}</h2>
+    <form method="post" action="{{ url_for('editar_usuario', user_id=usuario_editado.id) }}">
+      <label for="nome">Nome Completo</label>
+      <input type="text" id="nome" name="nome" value="{{ usuario_editado.nome }}" required>
+      
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="{{ usuario_editado.email }}" required>
+      
+      <label for="senha">Nova Senha (deixe em branco para manter a atual)</label>
+      <input type="password" id="senha" name="senha" placeholder="Deixe em branco para não alterar">
+      
+      {% if usuario_editado.perfil == 'profissional' and usuario_editado.profissional %}
+      <label for="especialidades">Especialidades</label>
+      <input type="text" id="especialidades" name="especialidades" value="{{ usuario_editado.profissional.especialidades or '' }}" placeholder="Ex: Corte, Coloração, Manicure">
+      {% endif %}
+      
+      <label>
+        <input type="checkbox" name="is_ativo" {% if usuario_editado.is_ativo %}checked{% endif %}>
+        Usuário Ativo
+      </label>
+      
+      <p class="info-text">
+        <strong>Perfil:</strong> {{ usuario_editado.perfil|capitalize }}<br>
+        {% if usuario_editado.perfil == 'profissional' and usuario_editado.profissional %}
+        <strong>Status:</strong> {{ usuario_editado.profissional.status|capitalize }}<br>
+        {% elif usuario_editado.perfil == 'admin' and usuario_editado.administrador %}
+        <strong>Status:</strong> {{ usuario_editado.administrador.status|capitalize }}<br>
+        {% endif %}
+      </p>
+      
+      <button type="submit">Salvar Alterações</button>
+    </form>
+    <p class="link-text"><a href="{{ url_for('painel_usuarios') }}">← Voltar para Painel de Usuários</a></p>
+  </div>
+{% endblock %}
+

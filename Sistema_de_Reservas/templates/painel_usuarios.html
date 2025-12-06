@@ -15,17 +15,22 @@
 <body class="bg-light">
 
     <div class="container py-5">
-        <!-- Título + botão de limpar -->
+        <!-- Título + botões -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0 text-dark">Painel de Usuários</h2>
 
-            <form method="post"
-                  action="{{ url_for('limpar_usuarios') }}"
-                  onsubmit="return confirm('Tem certeza que deseja excluir TODOS os usuários, exceto os admins padrão? Esta ação não pode ser desfeita.');">
-                <button type="submit" class="btn btn-sm btn-danger">
-                    Excluir todos os usuários (exceto admins padrão)
-                </button>
-            </form>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('criar_usuario') }}" class="btn btn-sm btn-success">
+                    ➕ Criar Novo Usuário
+                </a>
+                <form method="post"
+                      action="{{ url_for('limpar_usuarios') }}"
+                      onsubmit="return confirm('Tem certeza que deseja excluir TODOS os usuários, exceto os admins padrão? Esta ação não pode ser desfeita.');">
+                    <button type="submit" class="btn btn-sm btn-danger">
+                        🗑️ Excluir todos (exceto admins padrão)
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Filtro de Usuários -->
@@ -85,36 +90,45 @@
                                     'sthefdantas@gmail.com'
                                 ] %}
 
-                                {% if is_admin_padrao %}
-                                    <span class="text-muted">Admin padrão</span>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <!-- Botão Editar -->
+                                    <a href="{{ url_for('editar_usuario', user_id=u.id) }}" class="btn btn-sm btn-primary" title="Editar">
+                                        ✏️ Editar
+                                    </a>
 
-                                {% elif u.perfil == 'profissional' %}
-                                    {% if u.profissional.status == 'pendente' %}
-                                        <a href="{{ url_for('aprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-success">Aprovar</a>
-                                        <a href="{{ url_for('reprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
-                                    {% elif u.profissional.status == 'aprovado' %}
-                                        <a href="{{ url_for('reprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
-                                    {% elif u.profissional.status == 'reprovado' %}
-                                        <a href="{{ url_for('reconsiderar_profissional', user_id=u.id) }}" class="btn btn-sm btn-warning">Reconsiderar</a>
+                                    <!-- Botão Excluir (exceto admins padrão) -->
+                                    {% if not is_admin_padrao %}
+                                    <form method="post" action="{{ url_for('excluir_usuario', user_id=u.id) }}" style="display: inline;" 
+                                          onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ u.nome }}? Esta ação não pode ser desfeita.');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Excluir">
+                                            🗑️ Excluir
+                                        </button>
+                                    </form>
                                     {% endif %}
 
-                                {% elif u.perfil == 'admin' %}
-                                    {% if u.administrador.status == 'pendente' %}
-                                        <a href="{{ url_for('aprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-success">Aprovar</a>
-                                        <a href="{{ url_for('reprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
-                                    {% elif u.administrador.status == 'aprovado' %}
-                                        <a href="{{ url_for('reprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-danger">Reprovar</a>
-                                    {% elif u.administrador.status == 'reprovado' %}
-                                        <a href="{{ url_for('reconsiderar_admin', user_id=u.id) }}" class="btn btn-sm btn-warning">Reconsiderar</a>
+                                    <!-- Botões de Aprovação/Reprovação -->
+                                    {% if is_admin_padrao %}
+                                        <span class="text-muted">Admin padrão</span>
+                                    {% elif u.perfil == 'profissional' %}
+                                        {% if u.profissional.status == 'pendente' %}
+                                            <a href="{{ url_for('aprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-success">✅ Aprovar</a>
+                                            <a href="{{ url_for('reprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-danger">❌ Reprovar</a>
+                                        {% elif u.profissional.status == 'aprovado' %}
+                                            <a href="{{ url_for('reprovar_profissional', user_id=u.id) }}" class="btn btn-sm btn-danger">❌ Reprovar</a>
+                                        {% elif u.profissional.status == 'reprovado' %}
+                                            <a href="{{ url_for('reconsiderar_profissional', user_id=u.id) }}" class="btn btn-sm btn-warning">🔄 Reconsiderar</a>
+                                        {% endif %}
+                                    {% elif u.perfil == 'admin' %}
+                                        {% if u.administrador.status == 'pendente' %}
+                                            <a href="{{ url_for('aprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-success">✅ Aprovar</a>
+                                            <a href="{{ url_for('reprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-danger">❌ Reprovar</a>
+                                        {% elif u.administrador.status == 'aprovado' %}
+                                            <a href="{{ url_for('reprovar_admin', user_id=u.id) }}" class="btn btn-sm btn-danger">❌ Reprovar</a>
+                                        {% elif u.administrador.status == 'reprovado' %}
+                                            <a href="{{ url_for('reconsiderar_admin', user_id=u.id) }}" class="btn btn-sm btn-warning">🔄 Reconsiderar</a>
+                                        {% endif %}
                                     {% endif %}
-
-                                {% else %}
-                                    {% if u.is_ativo %}
-                                        <span class="text-muted">Ativo</span>
-                                    {% else %}
-                                        <span class="text-muted">Inativo</span>
-                                    {% endif %}
-                                {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}

@@ -23,12 +23,12 @@ body {
   font-family: 'Poppins';
   color: var(--cor-texto);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-image: url('../imgs/plano_de_fundo(2).jpg');
+
+  background-image: url('../imgs/plano_de_fundo.jpg');
   background-repeat: no-repeat;
-  background-size: 100%;
-  background-position: center;
+  background-size: cover;        /* Preenche toda a tela */
+  background-position: center;   /* Centraliza */
+  background-attachment: fixed;  /* (Opcional) deixa o fundo fixo ao rolar */
 }
 
 
@@ -48,11 +48,57 @@ body {
 .nav {
   background: var(--cor-primaria);
   color: #fff;
-  padding: 1rem;
+  padding: 0.8rem 1.5rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+  
+  /* Remove qualquer flash/cor ao clicar */
+  outline: none;
+}
+
+.logo-link,
+.logo-link:hover,
+.logo-link:focus,
+.logo-link:active {
+    background: transparent !important;
+    outline: none;
+    box-shadow: none !important;
+}
+
+/* AQUI aumentei a logo */
+.logo-img {
+  background-color: transparent;
+  max-height: 100px; /* antes era 50px */
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  
+  /* opcional: deixa mais nítido */
+  image-rendering: auto;
+}
+
+.nav-links {
   display: flex;
   gap: 1rem;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .nav a {
@@ -62,15 +108,39 @@ body {
   padding: 0.5rem 0.8rem;
   border-radius: 6px;
   transition: background 0.3s;
+  font-size: 0.95rem;
 }
 
 .nav a:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.nav span {
+.nav .user-info {
   margin-right: auto;
   font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nav .user-info strong {
+  font-weight: 700;
+  color: #fff;
+}
+
+.nav .user-role {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.nav .logout-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.nav .logout-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 
@@ -159,6 +229,69 @@ form {
   gap: 1rem;
 }
 
+.login-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.login-subtitle {
+  color: #666;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.login-form {
+  margin-bottom: 1.5rem;
+}
+
+.btn-login-submit {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.login-links {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.login-links p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.login-links a {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.info-text {
+  background: var(--cor-info);
+  color: #0c5460;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #0c5460;
+}
+
+.link-text {
+  text-align: center;
+  margin-top: 1rem;
+  color: #666;
+}
+
+.link-text a {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
 input, select {
   width: 100%;
   padding: 0.8rem;
@@ -209,19 +342,64 @@ ul li, .card {
   list-style: none;
   padding: 0;
   margin: 1rem 0;
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 400px;
+  width: auto;
 }
 
 .flash {
-  padding: 0.8rem;
-  margin-bottom: 0.6rem;
-  border-radius: 6px;
-  font-weight: bold;
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: relative;
+  animation: slideInRight 0.3s ease-out;
+  cursor: pointer;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
-.flash.success { background: var(--cor-sucesso); color: #155724; }
-.flash.danger  { background: var(--cor-perigo);  color: #721c24; }
-.flash.warning { background: var(--cor-aviso);   color: #856404; }
-.flash.info    { background: var(--cor-info);    color: #0c5460; }
+.flash:hover {
+  transform: translateX(-5px);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.flash.success { 
+  background: var(--cor-sucesso); 
+  color: #155724; 
+  border-left: 4px solid #28a745;
+}
+
+.flash.danger { 
+  background: var(--cor-perigo); 
+  color: #721c24; 
+  border-left: 4px solid #dc3545;
+}
+
+.flash.warning { 
+  background: var(--cor-aviso); 
+  color: #856404; 
+  border-left: 4px solid #ffc107;
+}
+
+.flash.info { 
+  background: var(--cor-info); 
+  color: #0c5460; 
+  border-left: 4px solid #17a2b8;
+}
 
 
 /* =========================
@@ -249,49 +427,134 @@ a:hover {
 /* =========================
    NOTIFICAÇÕES
 ========================= */
-ul {
+.notificacoes-filtros {
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.notificacoes-lista {
   list-style: none;
   padding: 0;
 }
 
-li {
-  padding: 0.7rem 1rem;
-  margin-bottom: 0.5rem;
-  border-radius: 8px;
-  background: #fafafa;
-  border: 1px solid #e2e2e2;
-  position: relative;
+.notificacao-item {
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 2px solid #e2e2e2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.notificacao-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
 }
 
 /* Notificação não lida */
-li.nao-lida {
+.notificacao-item.nao-lida {
   background: #fff8e1;
   border-left: 5px solid #ff9800;
+  border-color: #ff9800;
 }
 
-/* Badge "Novo" */
-li.nao-lida::before {
-  content: "Novo";
+.notificacao-item.nao-lida::before {
+  content: "NOVO";
   background: #ff9800;
   color: #fff;
   font-size: 0.7rem;
   font-weight: bold;
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 4px;
   position: absolute;
-  top: 8px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
+  letter-spacing: 1px;
 }
 
-/* Links dentro da notificação */
-li a {
-  font-size: 0.8rem;
-  margin-left: 1rem;
-  color: #0077cc;
+.notificacao-conteudo {
+  position: relative;
 }
 
-li a:hover {
-  text-decoration: underline;
+.notificacao-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.notificacao-data {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.btn-marcar-lida {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  background: #28a745;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.btn-marcar-lida:hover {
+  background: #218838;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.notificacao-lida-badge {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  background: #e9ecef;
+  color: #6c757d;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.notificacao-mensagem {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 0.8rem;
+}
+
+.notificacao-acoes {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e2e2;
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.notificacao-acoes .btn {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+}
+
+.sem-notificacoes {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.sem-notificacoes p {
+  font-size: 1.2rem;
+  color: #666;
 }
 
 
@@ -354,7 +617,7 @@ li a:hover {
   }
 
   body {
-    background-image: url('../imgs/plano_de_fundo(2).jpg');
+    background-image: url('../imgs/plano_de_fundo.jpg');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -379,9 +642,38 @@ li a:hover {
   .nav {
     flex-direction: column;
     align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .nav-logo {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-links {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .nav .user-info {
+    margin-right: 0;
+    width: 100%;
   }
 
   .nav a {
     margin: 0.3rem 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  .flashes {
+    position: fixed;
+    top: 70px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    width: auto;
   }
 }

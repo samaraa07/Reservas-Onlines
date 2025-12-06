@@ -5,29 +5,55 @@
     <h2>Notificações</h2>
 
     {% if notificacoes %}
-      <div style="margin-bottom:1rem;">
-        <a href="?filtro=nao_lidas" class="btn btn-secundario">Somente não lidas</a>
-        <a href="?filtro=todas" class="btn btn-secundario">Todas</a>
+      <div class="notificacoes-filtros">
+        <a href="?filtro=nao_lidas" class="btn btn-secundario">📬 Somente não lidas</a>
+        <a href="?filtro=todas" class="btn btn-secundario">📋 Todas</a>
+        {% if nao_lidas_count > 0 %}
+          <a href="{{ url_for('marcar_todas_lidas') }}" class="btn btn-success" 
+             onclick="return confirm('Marcar todas as {{ nao_lidas_count }} notificação(ões) não lida(s) como lidas?');">
+            ✅ Marcar todas como lidas ({{ nao_lidas_count }})
+          </a>
+        {% endif %}
       </div>
 
-      <ul>
+      <ul class="notificacoes-lista">
       {% for n in notificacoes %}
-        <li {% if not n.lida %}class="nao-lida"{% endif %}>
-          {{ n.criado_em.strftime('%d/%m/%Y %H:%M') }} — {{ n.mensagem }}
-
-          {# Botões de aprovação / reprovação visíveis apenas para admins #}
-          {% if user.perfil == 'admin' and n.tipo == 'pedido_admin' %}
-            <a href="{{ url_for('aprovar_admin', user_id=n.alvo_id) }}" class="btn btn-success">Aprovar</a>
-            <a href="{{ url_for('reprovar_admin', user_id=n.alvo_id) }}" class="btn btn-danger">Reprovar</a>
-          {% elif user.perfil == 'admin' and n.tipo == 'pedido_profissional' %}
-            <a href="{{ url_for('aprovar_profissional', user_id=n.alvo_id) }}" class="btn btn-success">Aprovar</a>
-            <a href="{{ url_for('reprovar_profissional', user_id=n.alvo_id) }}" class="btn btn-danger">Reprovar</a>
-          {% endif %}
+        <li class="notificacao-item {% if not n.lida %}nao-lida{% endif %}">
+          <div class="notificacao-conteudo">
+            <div class="notificacao-header">
+              <div class="notificacao-data">{{ n.criado_em.strftime('%d/%m/%Y %H:%M') }}</div>
+              {% if not n.lida %}
+                <a href="{{ url_for('marcar_lida', notif_id=n.id) }}" 
+                   class="btn-marcar-lida" 
+                   title="Marcar como lida">
+                  ✓ Marcar como lida
+                </a>
+              {% else %}
+                <span class="notificacao-lida-badge">✓ Lida</span>
+              {% endif %}
+            </div>
+            <div class="notificacao-mensagem">{{ n.mensagem }}</div>
+            
+            {# Botões de aprovação / reprovação visíveis apenas para admins #}
+            {% if user.perfil == 'admin' and n.tipo == 'pedido_admin' %}
+              <div class="notificacao-acoes">
+                <a href="{{ url_for('aprovar_admin', user_id=n.alvo_id) }}" class="btn btn-success">✅ Aprovar</a>
+                <a href="{{ url_for('reprovar_admin', user_id=n.alvo_id) }}" class="btn btn-danger">❌ Reprovar</a>
+              </div>
+            {% elif user.perfil == 'admin' and n.tipo == 'pedido_profissional' %}
+              <div class="notificacao-acoes">
+                <a href="{{ url_for('aprovar_profissional', user_id=n.alvo_id) }}" class="btn btn-success">✅ Aprovar</a>
+                <a href="{{ url_for('reprovar_profissional', user_id=n.alvo_id) }}" class="btn btn-danger">❌ Reprovar</a>
+              </div>
+            {% endif %}
+          </div>
         </li>
       {% endfor %}
       </ul>
     {% else %}
-      <p>Sem notificações.</p>
+      <div class="sem-notificacoes">
+        <p>📭 Você não possui notificações no momento.</p>
+      </div>
     {% endif %}
   </div>
 {% endblock %}

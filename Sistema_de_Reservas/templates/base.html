@@ -12,30 +12,38 @@
 <body>
     <header>
         <div class="nav">
-            <a href="{{ url_for('index') }}">Início</a>
+            <div class="nav-logo">
+                <a href="{{ url_for('index') }}" class="logo-link">
+                    <img src="{{ url_for('static', filename='imgs/Logo 1.png') }}" alt="Logo" class="logo-img">
+                </a>
+            </div>
             
-            {% if user %}
-                <span>
-                    Olá, {{ user.nome }} 
-                    ({{ user.perfil|capitalize }}
-                    {% if user.perfil == 'profissional' %}
-                        – {{ user.profissional.especialidades }}
-                    {% endif %})
-                </span>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">Início</a>
+                
+                {% if user %}
+                    <span class="user-info">
+                        Olá, <strong>{{ user.nome }}</strong> 
+                        <span class="user-role">({{ user.perfil|capitalize }}
+                        {% if user.perfil == 'profissional' %}
+                            – {{ user.profissional.especialidades }}
+                        {% endif %})</span>
+                    </span>
 
-                <!-- Atalhos diferentes por perfil -->
-                {% if user.perfil == 'cliente' %}
-                    <a href="{{ url_for('minhas_reservas') }}">Minhas Reservas</a>
-                {% elif user.perfil == 'profissional' %}
-                    <a href="{{ url_for('dashboard_profissional') }}">Meus Agendamentos</a>
-                {% elif user.perfil == 'admin' %}
-                    <a href="{{ url_for('dashboard_admin') }}">Painel Geral</a>
-                    <a href="{{ url_for('painel_usuarios') }}">Gerenciar Usuários</a>
+                    <!-- Atalhos diferentes por perfil -->
+                    {% if user.perfil == 'cliente' %}
+                        <a href="{{ url_for('minhas_reservas') }}">Minhas Reservas</a>
+                    {% elif user.perfil == 'profissional' %}
+                        <a href="{{ url_for('dashboard_profissional') }}">Meus Agendamentos</a>
+                    {% elif user.perfil == 'admin' %}
+                        <a href="{{ url_for('dashboard_admin') }}">Painel Geral</a>
+                        <a href="{{ url_for('painel_usuarios') }}">Gerenciar Usuários</a>
+                    {% endif %}
+
+                    <a href="{{ url_for('notificacoes') }}">Notificações</a>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Sair</a>
                 {% endif %}
-
-                <a href="{{ url_for('notificacoes') }}">Notificações</a>
-                <a href="{{ url_for('logout') }}">Sair</a>
-            {% endif %}
+            </div>
         </div>
     </header>
 
@@ -52,5 +60,34 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        // Auto-dismiss flash messages após 5 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash');
+            
+            flashMessages.forEach(function(flash) {
+                // Adiciona classe para animação
+                flash.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                
+                // Após 5 segundos, remove a mensagem
+                setTimeout(function() {
+                    flash.style.opacity = '0';
+                    flash.style.transform = 'translateY(-10px)';
+                    
+                    // Remove do DOM após a animação
+                    setTimeout(function() {
+                        flash.remove();
+                        
+                        // Remove a lista se estiver vazia
+                        const flashesList = document.querySelector('.flashes');
+                        if (flashesList && flashesList.children.length === 0) {
+                            flashesList.remove();
+                        }
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 </html>

@@ -1,10 +1,176 @@
 {% extends "base.html" %}
 {% block title %}Painel Cliente{% endblock %}
 {% block content %}
-  <div class="container">
-    <h2>Bem-vindo(a), {{ user.nome }}!</h2>
-    <p>Você está logado como <strong>Cliente</strong>.</p>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  
+  <div class="container dashboard-container">
+    <div class="dashboard-header">
+      <h1>Bem-vindo(a), {{ user.nome }}!</h1>
+      <p class="dashboard-subtitle">Gerencie seus agendamentos e serviços</p>
+    </div>
 
-    <a href="{{ url_for('reservar') }}" class="btn">Fazer minha reserva</a>
+    <!-- Cards de Estatísticas -->
+    <div class="stats-grid">
+      <div class="stat-card stat-primary">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/agendamentos.png') }}" class="emoji-img">
+        </div>
+        <div class="stat-content">
+          <h3>{{ total_agendamentos }}</h3>
+          <p>Total de Agendamentos</p>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-success">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/confirmados.png') }}" class="emoji-img">
+        </div>
+        <div class="stat-content">
+          <h3>{{ confirmados }}</h3>
+          <p>Confirmados</p>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-warning">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/pendentes.png') }}" class="emoji-img">
+        </div>
+        <div class="stat-content">
+          <h3>{{ pendentes }}</h3>
+          <p>Pendentes</p>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-info">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/proximos.png') }}" class="emoji-img">
+        </div>
+        <div class="stat-content">
+          <h3>{{ proximos }}</h3>
+          <p>Próximos</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Próximo Agendamento -->
+    {% if proximo_agendamento %}
+    <div class="next-appointment-card {% if proximo_agendamento.status == 'confirmado' %}appointment-confirmed-card{% endif %}">
+      <h2>
+        {% if proximo_agendamento.status == 'confirmado' %}
+          <img src="{{ url_for('static', filename='imgs/confirmados.png') }}" class="emoji-img-title">
+          Agendamento Confirmado e Marcado
+        {% else %}
+          <img src="{{ url_for('static', filename='imgs/proximos.png') }}" class="emoji-img-title">
+          Próximo Agendamento
+        {% endif %}
+      </h2>
+      <div class="appointment-details">
+        <div class="appointment-info">
+          <h3>{{ proximo_agendamento.servico.nome }}</h3>
+          <p><strong>Profissional:</strong> {{ proximo_agendamento.profissional.user.nome }}</p>
+          <p><strong>Data e Hora:</strong> {{ proximo_agendamento.data_hora.strftime('%d/%m/%Y às %H:%M') }}</p>
+          <p><strong>Status:</strong> 
+            {% if proximo_agendamento.status == 'confirmado' %}
+              <span class="status-badge status-confirmado status-marcado">
+                <img src="{{ url_for('static', filename='imgs/confirmados.png') }}" class="emoji-inline">
+                {{ proximo_agendamento.status|capitalize }} - Marcado
+              </span>
+            {% else %}
+              <span class="status-badge status-{{ proximo_agendamento.status }}">
+                {{ proximo_agendamento.status|capitalize }}
+              </span>
+            {% endif %}
+          </p>
+
+          {% if proximo_agendamento.servico.preco %}
+          <p><strong>Preço:</strong> R$ {{ "%.2f"|format(proximo_agendamento.servico.preco) }}</p>
+          {% endif %}
+        </div>
+
+        <div class="appointment-actions">
+          {% if proximo_agendamento.status != 'cancelado' %}
+            <a href="{{ url_for('cancelar_agendamento', ag_id=proximo_agendamento.id) }}" 
+               class="btn btn-danger" 
+               onclick="return confirm('Tem certeza que deseja cancelar este agendamento?');">
+              Cancelar
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Ações Rápidas -->
+    <div class="quick-actions">
+      <a href="{{ url_for('reservar') }}" class="action-btn action-primary">
+        <span class="action-icon">
+          <img src="{{ url_for('static', filename='imgs/adicionar.png') }}" class="emoji-img">
+        </span>
+        <span class="action-text">Fazer Nova Reserva</span>
+      </a>
+
+      <a href="{{ url_for('minhas_reservas') }}" class="action-btn action-secondary">
+        <span class="action-icon">
+          <img src="{{ url_for('static', filename='imgs/reservas.png') }}" class="emoji-img">
+        </span>
+        <span class="action-text">Ver Todas as Reservas</span>
+      </a>
+    </div>
+
+    <!-- Agendamentos Recentes -->
+    {% if agendamentos %}
+    <div class="recent-appointments">
+      <h2>Agendamentos Recentes</h2>
+      <div class="appointments-list">
+        {% for ag in agendamentos[:5] %}
+        <div class="appointment-item {% if ag.status == 'confirmado' %}appointment-confirmed{% endif %}">
+          <div class="appointment-date {% if ag.status == 'confirmado' %}date-confirmed{% endif %}">
+            <span class="date-day">{{ ag.data_hora.strftime('%d') }}</span>
+            <span class="date-month">{{ ag.data_hora.strftime('%b') }}</span>
+            {% if ag.status == 'confirmado' %}
+            <span class="confirmed-icon">✓</span>
+            {% endif %}
+          </div>
+
+          <div class="appointment-details-item">
+            <h4>{{ ag.servico.nome }}</h4>
+            <p>{{ ag.profissional.user.nome }} • {{ ag.data_hora.strftime('%H:%M') }}</p>
+            
+            {% if ag.status == 'confirmado' %}
+              <span class="status-badge status-confirmado status-marcado">
+                <img src="{{ url_for('static', filename='imgs/confirmados.png') }}" class="emoji-inline">
+                {{ ag.status|capitalize }} - Marcado
+              </span>
+            {% else %}
+              <span class="status-badge status-{{ ag.status }}">
+                {{ ag.status|capitalize }}
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="appointment-actions-item">
+            {% if ag.pode_cancelar %}
+              <a href="{{ url_for('cancelar_agendamento', ag_id=ag.id) }}" 
+                 class="btn-small btn-danger"
+                 onclick="return confirm('Cancelar este agendamento?');">
+                Cancelar
+              </a>
+            {% elif ag.status == 'cancelado' %}
+              <span class="text-muted">Cancelado</span>
+            {% elif ag.data_hora <= agora %}
+              <span class="text-muted">Agendamento passado</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if agendamentos|length > 5 %}
+      <div class="view-all">
+        <a href="{{ url_for('minhas_reservas') }}" class="btn btn-secundario">Ver Todos os Agendamentos</a>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
 {% endblock %}

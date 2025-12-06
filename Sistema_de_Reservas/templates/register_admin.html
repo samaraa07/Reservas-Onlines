@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Cadastro Administrador{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Cadastro de Administrador</h2>
+    <p class="info-text">Seu cadastro será enviado para aprovação de outros administradores. Você receberá uma notificação quando for aprovado.</p>
+    <form method="post" action="{{ url_for('register_admin') }}">
+      <label for="nome">Nome Completo</label>
+      <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+      
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+      
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required minlength="6">
+      
+      <button type="submit">Enviar Cadastro</button>
+    </form>
+    <p class="link-text">Já tem conta? <a href="{{ url_for('login') }}">Fazer login</a></p>
+    <p class="link-text"><a href="{{ url_for('index') }}">← Voltar para página inicial</a></p>
+  </div>
+{% endblock %}
+

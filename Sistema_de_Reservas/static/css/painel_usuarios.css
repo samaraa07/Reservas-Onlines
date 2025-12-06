@@ -9,3 +9,11 @@
 .btn-secondary {
     --bs-btn-bg: #8b5e3c;
 }
+
+body.bg-light {
+    background-image: url("../imgs/plano_de_fundo.jpg") !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+}
