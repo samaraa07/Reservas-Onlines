@@ -128,15 +128,15 @@ body {
 }
 
 .cliente-icon {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: linear-gradient(135deg, #2b2418 0%, #251f16 100%);
 }
 
 .profissional-icon {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  background: linear-gradient(135deg, #2b2418 0%,#251f16 100%);
 }
 
 .admin-icon {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg,  #2b2418 0%, #251f16 100%);
 }
 
 .profile-title {
