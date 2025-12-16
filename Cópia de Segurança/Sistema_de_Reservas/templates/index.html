@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Página Inicial - Sistema de Reservas{% endblock %}
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+
+  <!-- Seção de Boas-vindas -->
+  <section class="welcome-section">
+    <div class="welcome-background"></div>
+    <div class="welcome-container">
+      <h1 class="welcome-title">Bem-vindo ao Sistema de Reservas Online</h1>
+      <div class="welcome-divider"></div>
+      <p class="welcome-subtitle">Qual é o seu perfil?</p>
+      <p class="welcome-description">Escolha abaixo como deseja acessar o sistema e comece a usar nossos serviços</p>
+    </div>
+  </section>
+
+  <!-- Cards de Perfis -->
+  <section class="profiles-section">
+    <div class="profiles-container">
+      <!-- Card Cliente -->
+      <div class="profile-card">
+        <div class="profile-icon cliente-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+          </svg>
+        </div>
+        <h2 class="profile-title">Cliente</h2>
+        <p class="profile-description">Agende seus serviços de forma rápida e fácil. Faça login ou cadastre-se para começar.</p>
+        <div class="profile-actions">
+          <a href="{{ url_for('login') }}" class="btn-profile btn-login">Login</a>
+          <a href="{{ url_for('register_cliente') }}" class="btn-profile btn-register">Cadastrar</a>
+        </div>
+      </div>
+
+      <!-- Card Profissional -->
+      <div class="profile-card">
+        <div class="profile-icon profissional-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+          </svg>
+        </div>
+        <h2 class="profile-title">Profissional</h2>
+        <p class="profile-description">Gerencie seus agendamentos e serviços oferecidos. Acesso após aprovação do administrador.</p>
+        <div class="profile-actions">
+          <a href="{{ url_for('login') }}" class="btn-profile btn-login">Login</a>
+          <a href="{{ url_for('register_profissional') }}" class="btn-profile btn-register">Cadastrar</a>
+        </div>
+      </div>
+
+      <!-- Card Administrador -->
+      <div class="profile-card">
+        <div class="profile-icon admin-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+          </svg>
+        </div>
+        <h2 class="profile-title">Administrador</h2>
+        <p class="profile-description">Acesse o painel de controle do sistema. Gerencie usuários, aprovações e configurações.</p>
+        <div class="profile-actions">
+          <a href="{{ url_for('login') }}" class="btn-profile btn-login">Login</a>
+          <a href="{{ url_for('register_admin') }}" class="btn-profile btn-register">Cadastrar</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção de Profissionais Aprovados (se houver) -->
+  {% if profissionais %}
+  <section class="profissionais-section">
+    <div class="profissionais-container">
+      <h2 class="section-title">Nossos Profissionais</h2>
+      <div class="cards-grid">
+        {% for prof in profissionais %}
+          <article class="card-medico">
+            <div class="card-foto">
+              <img src="{{ url_for('static', filename='imgs/perfil.png') }}" alt="Perfil" style="width: 5000px; height: 5000px; border-radius: 10px; ">
+            </div>
+            <div class="card-conteudo">
+              <h2>{{ prof.user.nome|upper }}</h2>
+              <h3>{{ prof.especialidades }}</h3>
+              <p>
+                Serviços:
+                {% if prof.servicos %}
+                  {{ prof.servicos|map(attribute='nome')|join(', ') }}
+                {% else %}
+                  Nenhum serviço cadastrado ainda.
+                {% endif %}
+              </p>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Rodapé -->
+  <div class="landing-footer">
+    <p>© 2025 Sistema de Reservas Online</p>
+    <p>
+      <a href="{{ url_for('login_restrito') }}">Área restrita</a>
+    </p>
+  </div>
+{% endblock %}

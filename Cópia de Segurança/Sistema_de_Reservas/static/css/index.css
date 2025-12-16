@@ -1,0 +1,396 @@
+body {
+  background-color: #f5f3f2;
+  font-family: 'Poppins', sans-serif;
+}
+
+ /* Seção de Boas-vindas */
+.welcome-section {
+  position: relative;
+  background: linear-gradient(135deg, #6b4324 0%, #dda051 50%,  #f8e5cd 100%);
+  padding: 80px 32px;
+  text-align: center;
+  color: #fff;
+  overflow: hidden;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.welcome-container {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: #fff;
+  text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.welcome-divider {
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  margin: 25px auto;
+  border-radius: 2px;
+}
+
+.welcome-subtitle {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+  text-shadow: 1px 2px 4px rgba(0,0,0,0.2);
+  letter-spacing: 0.5px;
+}
+
+.welcome-description {
+  font-size: 1.2rem;
+  color:  rgba(75, 60, 48, 0.95);
+  margin-top: 20px;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 300;
+}
+
+/* Seção de Perfis */
+.profiles-section {
+  padding: 60px 32px;
+  background-color: #f5f3f2;
+}
+
+.profiles-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.profile-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border-color: #8B5E3C;
+}
+
+.profile-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.cliente-icon {
+  background: linear-gradient(135deg, #2b2418 0%, #251f16 100%);
+}
+
+.profissional-icon {
+  background: linear-gradient(135deg, #2b2418 0%,#251f16 100%);
+}
+
+.admin-icon {
+  background: linear-gradient(135deg,  #2b2418 0%, #251f16 100%);
+}
+
+.profile-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #8B5E3C;
+  margin-bottom: 16px;
+}
+
+.profile-description {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-profile {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+  min-width: 120px;
+}
+
+.btn-login {
+  background: #8B5E3C;
+  color: #fff;
+  border: 2px solid #8B5E3C;
+}
+
+.btn-login:hover {
+  background: #6B4528;
+  border-color: #6B4528;
+  transform: scale(1.05);
+}
+
+.btn-register {
+  background: transparent;
+  color: #8B5E3C;
+  border: 2px solid #8B5E3C;
+}
+
+.btn-register:hover {
+  background: #8B5E3C;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Seção de Profissionais */
+.profissionais-section {
+  padding: 60px 32px;
+  background-color: #fff;
+}
+
+.profissionais-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #8B5E3C;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+/* Topo */
+.topbar-landing {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 32px;
+  border-bottom: 2px solid #000;
+  background-color: #ffffff;
+}
+
+.topbar-logo {
+  border: 1px solid #000;
+  border-radius: 20px;
+  padding: 6px 24px;
+  font-weight: 600;
+}
+
+.topbar-btn {
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 6px 24px;
+  background-color: #f5f3f2;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  color: #000;
+}
+
+.topbar-btn:hover {
+  background-color: #e5e1df;
+}
+
+/* Hero/banner */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f3f2;
+  border-bottom: 2px solid #d3d3d3;
+  min-height: 220px;
+}
+
+.hero-text {
+  flex: 1;
+}
+
+.hero-img {
+  flex: 0 0 260px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-img img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Cards */
+.cards-section {
+  padding: 40px 32px 60px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.card-medico {
+  background-color: #e9eef2;
+  border-radius: 12px;
+  border: 1px solid #bcc3c9;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+}
+
+.card-foto {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.card-foto img {
+  max-height: 160px;
+  object-fit: cover;
+}
+
+.card-conteudo h2 {
+  font-size: 20px;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.card-conteudo h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.card-conteudo p {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Rodapé discreto / área restrita */
+.landing-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+  padding-bottom: 1rem;
+}
+
+.landing-footer a {
+  color: #aaa;
+  text-decoration: none;
+}
+
+.landing-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profiles-container {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .welcome-section {
+    padding: 50px 20px;
+    min-height: 350px;
+  }
+
+  .welcome-title {
+    font-size: 2rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 1.5rem;
+  }
+
+  .welcome-description {
+    font-size: 1rem;
+  }
+
+  .welcome-divider {
+    width: 60px;
+    margin: 20px auto;
+  }
+
+  .profiles-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .profile-card {
+    padding: 32px 24px;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profiles-section,
+  .profissionais-section {
+    padding: 40px 20px;
+  }
+}

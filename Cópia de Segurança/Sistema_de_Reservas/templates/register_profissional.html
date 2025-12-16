@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Cadastro Profissional{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Cadastro de Profissional</h2>
+    <p class="info-text">Seu cadastro será enviado para aprovação do administrador. Você receberá uma notificação quando for aprovado.</p>
+    <form method="post" action="{{ url_for('register_profissional') }}">
+      <label for="nome">Nome Completo</label>
+      <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+      
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+      
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required minlength="6">
+      
+      <label for="especialidades">Especialidades</label>
+      <input type="text" id="especialidades" name="especialidades" placeholder="Ex: Corte, Coloração, Manicure" required>
+      
+      <button type="submit">Enviar Cadastro</button>
+    </form>
+    <p class="link-text">Já tem conta? <a href="{{ url_for('login') }}">Fazer login</a></p>
+    <p class="link-text"><a href="{{ url_for('index') }}">← Voltar para página inicial</a></p>
+  </div>
+{% endblock %}
+

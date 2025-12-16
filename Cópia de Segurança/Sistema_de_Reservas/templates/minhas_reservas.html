@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Minhas Reservas{% endblock %}
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  
+  <div class="container dashboard-container">
+    <div class="dashboard-header">
+      <h1>Minhas Reservas</h1>
+      <p class="dashboard-subtitle">Gerencie todos os seus agendamentos</p>
+    </div>
+
+    {% if agendamentos %}
+      <div class="appointments-list">
+        {% for a in agendamentos %}
+        <div class="appointment-item appointment-full {% if a.status == 'confirmado' %}appointment-confirmed{% endif %}">
+          <div class="appointment-date {% if a.status == 'confirmado' %}date-confirmed{% endif %}">
+            <span class="date-day">{{ a.data_hora.strftime('%d') }}</span>
+            <span class="date-month">{{ a.data_hora.strftime('%b') }}</span>
+            <span class="date-year">{{ a.data_hora.strftime('%Y') }}</span>
+            {% if a.status == 'confirmado' %}
+            <span class="confirmed-icon">✓</span>
+            {% endif %}
+          </div>
+          <div class="appointment-details-item">
+            <h4>{{ a.servico.nome }}</h4>
+            <p><strong>Profissional:</strong> {{ a.profissional.user.nome }}</p>
+            <p><strong>Horário:</strong> {{ a.data_hora.strftime('%H:%M') }}</p>
+            {% if a.servico.preco %}
+            <p><strong>Preço:</strong> R$ {{ "%.2f"|format(a.servico.preco) }}</p>
+            {% endif %}
+            <p><strong>Duração:</strong> {{ a.servico.duracao_min }} minutos</p>
+            <div class="status-container">
+              {% if a.status == 'confirmado' %}
+                <span class="status-badge status-confirmado status-marcado">
+                  ✅ {{ a.status|capitalize }} - Marcado
+                </span>
+              {% else %}
+                <span class="status-badge status-{{ a.status }}">{{ a.status|capitalize }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="appointment-actions-item">
+            {% if a.pode_cancelar %}
+              <a href="{{ url_for('cancelar_agendamento', ag_id=a.id) }}" 
+                 class="btn btn-danger"
+                 onclick="return confirm('Tem certeza que deseja cancelar este agendamento?');">
+                Cancelar
+              </a>
+            {% elif a.status == 'cancelado' %}
+              <span class="text-muted">Cancelado</span>
+            {% elif a.data_hora <= agora %}
+              <span class="text-muted">Agendamento passado</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Você não possui reservas ainda.</p>
+        <a href="{{ url_for('reservar') }}" class="btn">Fazer Primeira Reserva</a>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

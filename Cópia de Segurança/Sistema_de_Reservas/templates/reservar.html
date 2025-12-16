@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Fazer Reserva{% endblock %}
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/reservar.css') }}">
+  
+  <div class="container reservar-container">
+    <div class="reservar-header">
+      <h1>Fazer Nova Reserva</h1>
+      <p>Selecione o profissional, serviço, data e horário desejados</p>
+    </div>
+
+    {% if profissionais %}
+      <form method="post" action="{{ url_for('reservar') }}" class="reservar-form" id="reservarForm">
+        
+        <!-- Seleção de Profissional -->
+        <div class="form-section">
+          <label class="form-label">1. Escolha o Profissional</label>
+          <select name="profissional_id" id="profissional_id" class="form-select" required>
+            <option value="">-- Selecione um profissional --</option>
+            {% for p in profissionais %}
+              <option value="{{ p.id }}" data-especialidades="{{ p.especialidades }}">
+                {{ p.user.nome }} — {{ p.especialidades }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Seleção de Serviço -->
+        <div class="form-section">
+          <label class="form-label">2. Escolha o Serviço</label>
+          <select name="servico_id" id="servico_id" class="form-select" required disabled>
+            <option value="">-- Selecione um profissional primeiro --</option>
+          </select>
+          <div id="servico-info" class="servico-info" style="display: none;">
+            <p><strong>Duração:</strong> <span id="servico-duracao"></span> minutos</p>
+            <p><strong>Preço:</strong> R$ <span id="servico-preco"></span></p>
+          </div>
+        </div>
+
+        <!-- Seleção de Data -->
+        <div class="form-section">
+          <label class="form-label">3. Escolha a Data</label>
+          <input type="date" name="data" id="data" class="form-input" required>
+          <div id="calendar-preview" class="calendar-preview"></div>
+        </div>
+
+        <!-- Seleção de Horário -->
+        <div class="form-section">
+          <label class="form-label">4. Escolha o Horário</label>
+          <div id="horarios-container" class="horarios-container">
+            <p class="info-text">Selecione primeiro o profissional e a data</p>
+          </div>
+          <input type="hidden" name="hora" id="hora_selecionada" required>
+        </div>
+
+        <!-- Resumo da Reserva -->
+        <div id="resumo-reserva" class="resumo-reserva" style="display: none;">
+          <h3>Resumo da Reserva</h3>
+          <div class="resumo-content">
+            <p><strong>Profissional:</strong> <span id="resumo-profissional"></span></p>
+            <p><strong>Serviço:</strong> <span id="resumo-servico"></span></p>
+            <p><strong>Data:</strong> <span id="resumo-data"></span></p>
+            <p><strong>Horário:</strong> <span id="resumo-horario"></span></p>
+            <p><strong>Preço:</strong> R$ <span id="resumo-preco"></span></p>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit" disabled>
+          <span>Confirmar Reserva</span>
+        </button>
+      </form>
+    {% else %}
+      <div class="empty-state">
+        <p>Não há profissionais disponíveis no momento para reserva.</p>
+        <a href="{{ url_for('index') }}" class="btn">Voltar para página inicial</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    // Configuração
+    const HORARIO_INICIO = 8; // 8h
+    const HORARIO_FIM = 18; // 18h
+    const INTERVALO = 30; // 30 minutos
+
+    // Elementos
+    const profissionalSelect = document.getElementById("profissional_id");
+    const servicoSelect = document.getElementById("servico_id");
+    const dataInput = document.getElementById("data");
+    const horariosContainer = document.getElementById("horarios-container");
+    const horaSelecionadaInput = document.getElementById("hora_selecionada");
+    const resumoReserva = document.getElementById("resumo-reserva");
+    const btnSubmit = document.getElementById("btnSubmit");
+
+    // Setar data mínima como hoje
+    const hoje = new Date().toISOString().split('T')[0];
+    dataInput.setAttribute('min', hoje);
+
+    // Event Listeners
+    profissionalSelect.addEventListener("change", carregarServicos);
+    servicoSelect.addEventListener("change", atualizarResumo);
+    dataInput.addEventListener("change", function() {
+      carregarHorarios();
+      atualizarResumo();
+    });
+
+    function carregarServicos() {
+      const profId = profissionalSelect.value;
+      
+      if (!profId) {
+        servicoSelect.innerHTML = "<option value=''>-- Selecione um profissional primeiro --</option>";
+        servicoSelect.disabled = true;
+        return;
+      }
+
+      fetch(`/api/servicos_por_profissional?profissional_id=${profId}`)
+        .then(resp => resp.json())
+        .then(dados => {
+          servicoSelect.innerHTML = "";
+          if (dados.length > 0) {
+            servicoSelect.disabled = false;
+            dados.forEach(s => {
+              const opt = document.createElement("option");
+              opt.value = s.id;
+              opt.textContent = `${s.nome} (${s.duracao} min)`;
+              opt.dataset.duracao = s.duracao;
+              opt.dataset.preco = s.preco || 0;
+              opt.dataset.nome = s.nome;
+              servicoSelect.appendChild(opt);
+            });
+          } else {
+            servicoSelect.innerHTML = "<option value=''>Este profissional não tem serviços cadastrados</option>";
+            servicoSelect.disabled = true;
+          }
+          atualizarResumo();
+        })
+        .catch(err => {
+          servicoSelect.innerHTML = "<option value=''>Erro ao carregar serviços</option>";
+        });
+    }
+
+    function carregarHorarios() {
+      const profId = profissionalSelect.value;
+      const data = dataInput.value;
+
+      if (!profId || !data) {
+        horariosContainer.innerHTML = "<p class='info-text'>Selecione primeiro o profissional e a data</p>";
+        return;
+      }
+
+      horariosContainer.innerHTML = "<p class='loading'>Carregando horários disponíveis...</p>";
+
+      fetch(`/api/horarios_ocupados?profissional_id=${profId}&data=${data}`)
+        .then(resp => resp.json())
+        .then(horariosOcupados => {
+          gerarBotoesHorarios(horariosOcupados);
+        })
+        .catch(err => {
+          horariosContainer.innerHTML = "<p class='error-text'>Erro ao carregar horários</p>";
+        });
+    }
+
+    function gerarBotoesHorarios(horariosOcupados) {
+      horariosContainer.innerHTML = "";
+      
+      const servicoSelect = document.getElementById("servico_id");
+      const servicoSelecionado = servicoSelect.options[servicoSelect.selectedIndex];
+      const duracao = servicoSelecionado ? parseInt(servicoSelecionado.dataset.duracao) : 30;
+
+      // Gerar horários disponíveis
+      for (let hora = HORARIO_INICIO; hora < HORARIO_FIM; hora++) {
+        for (let minuto = 0; minuto < 60; minuto += INTERVALO) {
+          const horarioStr = `${String(hora).padStart(2, '0')}:${String(minuto).padStart(2, '0')}`;
+          const horarioValue = `${String(hora).padStart(2, '0')}:${String(minuto).padStart(2, '0')}`;
+          
+          // Verificar se está ocupado
+          const estaOcupado = horariosOcupados.includes(horarioStr);
+          
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `horario-btn ${estaOcupado ? 'ocupado' : 'disponivel'}`;
+          btn.textContent = horarioStr;
+          btn.dataset.hora = horarioValue;
+          
+          if (!estaOcupado) {
+            btn.addEventListener("click", function() {
+              // Remover seleção anterior
+              document.querySelectorAll('.horario-btn.selecionado').forEach(b => {
+                b.classList.remove('selecionado');
+              });
+              
+              // Selecionar este horário
+              this.classList.add('selecionado');
+              horaSelecionadaInput.value = this.dataset.hora;
+              atualizarResumo();
+            });
+          } else {
+            btn.disabled = true;
+            btn.title = "Horário ocupado";
+          }
+          
+          horariosContainer.appendChild(btn);
+        }
+      }
+
+      if (horariosContainer.children.length === 0) {
+        horariosContainer.innerHTML = "<p class='info-text'>Nenhum horário disponível</p>";
+      }
+    }
+
+    function atualizarResumo() {
+      const profOption = profissionalSelect.options[profissionalSelect.selectedIndex];
+      const servicoOption = servicoSelect.options[servicoSelect.selectedIndex];
+      const data = dataInput.value;
+      const hora = horaSelecionadaInput.value;
+
+      if (profOption && servicoOption && data && hora) {
+        // Formatar data
+        const dataObj = new Date(data + 'T00:00:00');
+        const dataFormatada = dataObj.toLocaleDateString('pt-BR', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+
+        document.getElementById("resumo-profissional").textContent = profOption.textContent.split(' — ')[0];
+        document.getElementById("resumo-servico").textContent = servicoOption.dataset.nome;
+        document.getElementById("resumo-data").textContent = dataFormatada;
+        document.getElementById("resumo-horario").textContent = hora;
+        document.getElementById("resumo-preco").textContent = parseFloat(servicoOption.dataset.preco || 0).toFixed(2);
+        
+        // Atualizar info do serviço
+        document.getElementById("servico-duracao").textContent = servicoOption.dataset.duracao;
+        document.getElementById("servico-preco").textContent = parseFloat(servicoOption.dataset.preco || 0).toFixed(2);
+        document.getElementById("servico-info").style.display = "block";
+
+        resumoReserva.style.display = "block";
+        btnSubmit.disabled = false;
+      } else {
+        resumoReserva.style.display = "none";
+        btnSubmit.disabled = true;
+      }
+    }
+
+    // Atualizar resumo quando serviço mudar
+    servicoSelect.addEventListener("change", function() {
+      atualizarResumo();
+      if (dataInput.value && profissionalSelect.value) {
+        carregarHorarios();
+      }
+    });
+  </script>
+{% endblock %}

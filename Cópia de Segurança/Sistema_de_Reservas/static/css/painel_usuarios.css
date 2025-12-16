@@ -1,0 +1,19 @@
+.text-dark {
+    --bs-text-opacity: 1;
+    color: #8b5e3c !important;
+}
+.table thead th {
+    background-color: #8b5e3c;
+    color: white;
+}
+.btn-secondary {
+    --bs-btn-bg: #8b5e3c;
+}
+
+body.bg-light {
+    background-image: url("../imgs/plano_de_fundo.jpg") !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Painel Profissional{% endblock %}
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  
+  <div class="container dashboard-container">
+    <div class="dashboard-header">
+      <h1>Bem-vindo(a), {{ user.nome }}!</h1>
+      <p class="dashboard-subtitle">{{ user.profissional.especialidades }}</p>
+    </div>
+
+ <!-- Cards de Estatísticas -->
+<div class="stats-grid">
+
+  <div class="stat-card stat-primary">
+    <div class="stat-icon">
+      <img src="{{ url_for('static', filename='imgs/agendamentos.png') }}" alt="Agendamentos">
+    </div>
+    <div class="stat-content">
+      <h3>{{ agendamentos_hoje }}</h3>
+      <p>Agendamentos Hoje</p>
+    </div>
+  </div>
+
+  <div class="stat-card stat-info">
+    <div class="stat-icon">
+      <img src="{{ url_for('static', filename='imgs/proximos.png') }}" alt="Próximos">
+    </div>
+    <div class="stat-content">
+      <h3>{{ agendamentos_semana }}</h3>
+      <p>Esta Semana</p>
+    </div>
+  </div>
+
+  <div class="stat-card stat-warning">
+    <div class="stat-icon">
+      <img src="{{ url_for('static', filename='imgs/pendentes.png') }}" alt="Pendentes">
+    </div>
+    <div class="stat-content">
+      <h3>{{ pendentes }}</h3>
+      <p>Pendentes</p>
+    </div>
+  </div>
+
+  <div class="stat-card stat-success">
+    <div class="stat-icon">
+      <img src="{{ url_for('static', filename='imgs/confirmados.png') }}" alt="Confirmados">
+    </div>
+    <div class="stat-content">
+      <h3>{{ confirmados }}</h3>
+      <p>Confirmados</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="quick-actions">
+
+  <a href="{{ url_for('register_servico') }}" class="action-btn action-primary">
+    <span class="action-icon">
+      <img src="{{ url_for('static', filename='imgs/adicionar.png') }}" alt="Adicionar">
+    </span>
+    <span class="action-text">Cadastrar Novo Serviço</span>
+  </a>
+
+  <a href="{{ url_for('notificacoes') }}" class="action-btn action-secondary">
+    <span class="action-icon">
+      <img src="{{ url_for('static', filename='imgs/not.png') }}" alt="Notificações">
+    </span>
+    <span class="action-text">Ver Notificações</span>
+  </a>
+
+</div>
+
+    <!-- Serviços Cadastrados -->
+    <div class="services-section">
+      <div class="section-header">
+        <h2>Meus Serviços ({{ total_servicos }})</h2>
+        <a href="{{ url_for('register_servico') }}" class="btn btn-secundario">+ Novo Serviço</a>
+      </div>
+      {% if user.profissional.servicos %}
+      <div class="services-grid">
+        {% for servico in user.profissional.servicos %}
+        <div class="service-card">
+          <h3>{{ servico.nome }}</h3>
+          <div class="service-details">
+            <p><strong>Preço:</strong> R$ {{ "%.2f"|format(servico.preco) if servico.preco else "Não informado" }}</p>
+            <p><strong>Duração:</strong> {{ servico.duracao_min }} minutos</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p>Você ainda não cadastrou serviços.</p>
+        <a href="{{ url_for('register_servico') }}" class="btn">Cadastrar Primeiro Serviço</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Próximos Agendamentos -->
+    {% if proximos %}
+    <div class="recent-appointments">
+      <h2>Próximos Agendamentos</h2>
+      <div class="appointments-list">
+        {% for ag in proximos %}
+        <div class="appointment-item">
+          <div class="appointment-date">
+            <span class="date-day">{{ ag.data_hora.strftime('%d') }}</span>
+            <span class="date-month">{{ ag.data_hora.strftime('%b') }}</span>
+          </div>
+          <div class="appointment-details-item">
+            <h4>{{ ag.servico.nome }}</h4>
+            <p><strong>Cliente:</strong> {{ ag.cliente.user.nome }}</p>
+            <p>{{ ag.data_hora.strftime('%H:%M') }}</p>
+            <span class="status-badge status-{{ ag.status }}">{{ ag.status|capitalize }}</span>
+          </div>
+          <div class="appointment-actions-item">
+            {% if ag.status == 'pendente' %}
+              <a href="{{ url_for('confirmar_agendamento', ag_id=ag.id) }}" class="btn-small btn-success">✅ Confirmar</a>
+              <a href="{{ url_for('cancelar_agendamento', ag_id=ag.id) }}" class="btn-small btn-danger">❌ Cancelar</a>
+            {% elif ag.status == 'confirmado' %}
+              <a href="{{ url_for('cancelar_agendamento', ag_id=ag.id) }}" class="btn-small btn-danger">❌ Cancelar</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>Você não possui agendamentos próximos.</p>
+    </div>
+    {% endif %}
+  </div>
+{% endblock %}
