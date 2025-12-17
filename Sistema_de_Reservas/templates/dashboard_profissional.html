@@ -9,68 +9,68 @@
       <p class="dashboard-subtitle">{{ user.profissional.especialidades }}</p>
     </div>
 
- <!-- Cards de Estatísticas -->
-<div class="stats-grid">
+    <!-- Cards de Estatísticas -->
+    <div class="stats-grid">
 
-  <div class="stat-card stat-primary">
-    <div class="stat-icon">
-      <img src="{{ url_for('static', filename='imgs/agendamentos.png') }}" alt="Agendamentos">
+      <div class="stat-card stat-primary">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/agendamentos.png') }}" alt="Agendamentos">
+        </div>
+        <div class="stat-content">
+          <h3>{{ agendamentos_hoje }}</h3>
+          <p>Agendamentos Hoje</p>
+        </div>
+      </div>
+
+      <div class="stat-card stat-info">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/proximos.png') }}" alt="Próximos">
+        </div>
+        <div class="stat-content">
+          <h3>{{ agendamentos_semana }}</h3>
+          <p>Esta Semana</p>
+        </div>
+      </div>
+
+      <div class="stat-card stat-warning">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/pendentes.png') }}" alt="Pendentes">
+        </div>
+        <div class="stat-content">
+          <h3>{{ pendentes }}</h3>
+          <p>Pendentes</p>
+        </div>
+      </div>
+
+      <div class="stat-card stat-success">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='imgs/confirmados.png') }}" alt="Confirmados">
+        </div>
+        <div class="stat-content">
+          <h3>{{ confirmados }}</h3>
+          <p>Confirmados</p>
+        </div>
+      </div>
+
     </div>
-    <div class="stat-content">
-      <h3>{{ agendamentos_hoje }}</h3>
-      <p>Agendamentos Hoje</p>
+
+    <div class="quick-actions">
+
+      <a href="{{ url_for('register_servico') }}" class="action-btn action-primary">
+        <span class="action-icon">
+          <img src="{{ url_for('static', filename='imgs/adicionar.png') }}" alt="Adicionar">
+        </span>
+        <span class="action-text">Cadastrar Novo Serviço</span>
+      </a>
+
+      <a href="{{ url_for('notificacoes') }}" class="action-btn action-secondary">
+        <span class="action-icon">
+          <img src="{{ url_for('static', filename='imgs/not.png') }}" alt="Notificações">
+        </span>
+        <span class="action-text">Ver Notificações</span>
+      </a>
+
     </div>
-  </div>
-
-  <div class="stat-card stat-info">
-    <div class="stat-icon">
-      <img src="{{ url_for('static', filename='imgs/proximos.png') }}" alt="Próximos">
-    </div>
-    <div class="stat-content">
-      <h3>{{ agendamentos_semana }}</h3>
-      <p>Esta Semana</p>
-    </div>
-  </div>
-
-  <div class="stat-card stat-warning">
-    <div class="stat-icon">
-      <img src="{{ url_for('static', filename='imgs/pendentes.png') }}" alt="Pendentes">
-    </div>
-    <div class="stat-content">
-      <h3>{{ pendentes }}</h3>
-      <p>Pendentes</p>
-    </div>
-  </div>
-
-  <div class="stat-card stat-success">
-    <div class="stat-icon">
-      <img src="{{ url_for('static', filename='imgs/confirmados.png') }}" alt="Confirmados">
-    </div>
-    <div class="stat-content">
-      <h3>{{ confirmados }}</h3>
-      <p>Confirmados</p>
-    </div>
-  </div>
-
-</div>
-
-<div class="quick-actions">
-
-  <a href="{{ url_for('register_servico') }}" class="action-btn action-primary">
-    <span class="action-icon">
-      <img src="{{ url_for('static', filename='imgs/adicionar.png') }}" alt="Adicionar">
-    </span>
-    <span class="action-text">Cadastrar Novo Serviço</span>
-  </a>
-
-  <a href="{{ url_for('notificacoes') }}" class="action-btn action-secondary">
-    <span class="action-icon">
-      <img src="{{ url_for('static', filename='imgs/not.png') }}" alt="Notificações">
-    </span>
-    <span class="action-text">Ver Notificações</span>
-  </a>
-
-</div>
 
     <!-- Serviços Cadastrados -->
     <div class="services-section">
@@ -84,7 +84,10 @@
         <div class="service-card">
           <h3>{{ servico.nome }}</h3>
           <div class="service-details">
-            <p><strong>Preço:</strong> R$ {{ "%.2f"|format(servico.preco) if servico.preco else "Não informado" }}</p>
+            <p>
+              <strong>Preço:</strong>
+              R$ {{ "%.2f"|format(servico.preco) if servico.preco else "Não informado" }}
+            </p>
             <p><strong>Duração:</strong> {{ servico.duracao_min }} minutos</p>
           </div>
         </div>

@@ -3,24 +3,103 @@
 {% block content %}
   <div class="container">
     <h2>Cadastro de Profissional</h2>
-    <p class="info-text">Seu cadastro será enviado para aprovação do administrador. Você receberá uma notificação quando for aprovado.</p>
-    <form method="post" action="{{ url_for('register_profissional') }}">
+    <p class="info-text">
+      Seu cadastro será enviado para aprovação do administrador.
+      Você receberá uma notificação quando for aprovado.
+    </p>
+
+    {# IMPORTANTE: enctype para upload de arquivo #}
+    <form method="post"
+          action="{{ url_for('register_profissional') }}"
+          enctype="multipart/form-data">
+
       <label for="nome">Nome Completo</label>
-      <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
-      
+      <input
+        type="text"
+        id="nome"
+        name="nome"
+        placeholder="Seu nome completo"
+        required
+      >
+
       <label for="email">Email</label>
-      <input type="email" id="email" name="email" placeholder="seu@email.com" required>
-      
+      <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="seu@email.com"
+        required
+      >
+
       <label for="senha">Senha</label>
-      <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required minlength="6">
-      
+      <input
+        type="password"
+        id="senha"
+        name="senha"
+        placeholder="Mínimo 6 caracteres"
+        required
+        minlength="6"
+      >
+
       <label for="especialidades">Especialidades</label>
-      <input type="text" id="especialidades" name="especialidades" placeholder="Ex: Corte, Coloração, Manicure" required>
-      
+      <input
+        type="text"
+        id="especialidades"
+        name="especialidades"
+        placeholder="Ex: Corte, Coloração, Manicure"
+        required
+      >
+
+      {# CAMPO: Foto de perfil #}
+      <label for="foto_perfil">Foto de perfil (opcional)</label>
+      <input
+        type="file"
+        id="foto_perfil"
+        name="foto_perfil"
+        accept=".png,.jpg,.jpeg,.gif"
+      >
+
+      {# PRÉVIA DA IMAGEM #}
+      <div id="preview-container" style="margin-top: 10px; display: none;">
+        <p>Prévia da imagem:</p>
+        <img id="preview-img"
+             src=""
+             alt="Prévia da foto de perfil"
+             style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ccc;">
+      </div>
+
       <button type="submit">Enviar Cadastro</button>
     </form>
-    <p class="link-text">Já tem conta? <a href="{{ url_for('login') }}">Fazer login</a></p>
-    <p class="link-text"><a href="{{ url_for('index') }}">← Voltar para página inicial</a></p>
-  </div>
-{% endblock %}
 
+    <p class="link-text">
+      Já tem conta? <a href="{{ url_for('login') }}">Fazer login</a>
+    </p>
+    <p class="link-text">
+      <a href="{{ url_for('index') }}">← Voltar para página inicial</a>
+    </p>
+  </div>
+
+  <script>
+    const inputFile = document.getElementById('foto_perfil');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImg = document.getElementById('preview-img');
+
+    if (inputFile) {
+      inputFile.addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (!file) {
+          previewContainer.style.display = 'none';
+          previewImg.src = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          previewImg.src = e.target.result;
+          previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+{% endblock %}

@@ -15,7 +15,13 @@
       
       {% if usuario_editado.perfil == 'profissional' and usuario_editado.profissional %}
       <label for="especialidades">Especialidades</label>
-      <input type="text" id="especialidades" name="especialidades" value="{{ usuario_editado.profissional.especialidades or '' }}" placeholder="Ex: Corte, Coloração, Manicure">
+      <input
+        type="text"
+        id="especialidades"
+        name="especialidades"
+        value="{{ usuario_editado.profissional.especialidades or '' }}"
+        placeholder="Ex: Corte, Coloração, Manicure"
+      >
       {% endif %}
       
       <label>
@@ -34,7 +40,8 @@
       
       <button type="submit">Salvar Alterações</button>
     </form>
-    <p class="link-text"><a href="{{ url_for('painel_usuarios') }}">← Voltar para Painel de Usuários</a></p>
+    <p class="link-text">
+      <a href="{{ url_for('painel_usuarios') }}">← Voltar para Painel de Usuários</a>
+    </p>
   </div>
 {% endblock %}
-

@@ -10,7 +10,9 @@
       <h1 class="welcome-title">Bem-vindo ao Sistema de Reservas Online</h1>
       <div class="welcome-divider"></div>
       <p class="welcome-subtitle">Qual é o seu perfil?</p>
-      <p class="welcome-description">Escolha abaixo como deseja acessar o sistema e comece a usar nossos serviços</p>
+      <p class="welcome-description">
+        Escolha abaixo como deseja acessar o sistema e comece a usar nossos serviços
+      </p>
     </div>
   </section>
 
@@ -25,7 +27,9 @@
           </svg>
         </div>
         <h2 class="profile-title">Cliente</h2>
-        <p class="profile-description">Agende seus serviços de forma rápida e fácil. Faça login ou cadastre-se para começar.</p>
+        <p class="profile-description">
+          Agende seus serviços de forma rápida e fácil. Faça login ou cadastre-se para começar.
+        </p>
         <div class="profile-actions">
           <a href="{{ url_for('login') }}" class="btn-profile btn-login">Login</a>
           <a href="{{ url_for('register_cliente') }}" class="btn-profile btn-register">Cadastrar</a>
@@ -41,7 +45,9 @@
           </svg>
         </div>
         <h2 class="profile-title">Profissional</h2>
-        <p class="profile-description">Gerencie seus agendamentos e serviços oferecidos. Acesso após aprovação do administrador.</p>
+        <p class="profile-description">
+          Gerencie seus agendamentos e serviços oferecidos. Acesso após aprovação do administrador.
+        </p>
         <div class="profile-actions">
           <a href="{{ url_for('login') }}" class="btn-profile btn-login">Login</a>
           <a href="{{ url_for('register_profissional') }}" class="btn-profile btn-register">Cadastrar</a>
@@ -56,7 +62,9 @@
           </svg>
         </div>
         <h2 class="profile-title">Administrador</h2>
-        <p class="profile-description">Acesse o painel de controle do sistema. Gerencie usuários, aprovações e configurações.</p>
+        <p class="profile-description">
+          Acesse o painel de controle do sistema. Gerencie usuários, aprovações e configurações.
+        </p>
         <div class="profile-actions">
           <a href="{{ url_for('login') }}" class="btn-profile btn-login">Login</a>
           <a href="{{ url_for('register_admin') }}" class="btn-profile btn-register">Cadastrar</a>
@@ -74,14 +82,19 @@
         {% for prof in profissionais %}
           <article class="card-medico">
             <div class="card-foto">
+              {# Se tiver foto_perfil, usa a foto enviada. Senão, usa a imagem padrão. #}
               {% if prof.foto_perfil %}
-                <img src="{{ url_for('static', filename='imgs/' + prof.foto_perfil) }}" 
-                     alt="{{ prof.user.nome }}" 
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+                <img
+                  src="{{ url_for('static', filename='uploads/profissionais/' ~ prof.foto_perfil) }}"
+                  alt="Foto de {{ prof.user.nome }}"
+                  style="width: 120px; height: 120px; border-radius: 10px; object-fit: cover;"
+                >
               {% else %}
-                <img src="{{ url_for('static', filename='imgs/perfil.png') }}" 
-                     alt="Perfil Padrão" 
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+                <img
+                  src="{{ url_for('static', filename='imgs/perfil.png') }}"
+                  alt="Foto padrão"
+                  style="width: 120px; height: 120px; border-radius: 10px; object-fit: cover;"
+                >
               {% endif %}
             </div>
             <div class="card-conteudo">
@@ -90,9 +103,9 @@
               <p>
                 Serviços:
                 {% if prof.servicos %}
-                    {{ prof.servicos|map(attribute='nome')|join(', ') }}
-                  {% else %}
-                    Nenhum serviço cadastrado ainda.
+                  {{ prof.servicos|map(attribute='nome')|join(', ') }}
+                {% else %}
+                  Nenhum serviço cadastrado ainda.
                 {% endif %}
               </p>
             </div>
@@ -105,9 +118,9 @@
 
   <!-- Rodapé -->
   <div class="landing-footer">
-    <p>©️ 2025 Sistema de Reservas Online</p>
+    <p>© 2025 Sistema de Reservas Online</p>
     <p>
-      <a href="{{ url_for('login') }}">Área restrita</a>
+      <a href="{{ url_for('login_restrito') }}">Área restrita</a>
     </p>
   </div>
 {% endblock %}

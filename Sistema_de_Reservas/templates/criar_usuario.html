@@ -3,7 +3,9 @@
 {% block content %}
   <div class="container">
     <h2>Criar Novo Usuário</h2>
-    <form method="post" action="{{ url_for('criar_usuario') }}">
+    <form method="post"
+          action="{{ url_for('criar_usuario') }}"
+          enctype="multipart/form-data">
       <label for="nome">Nome Completo</label>
       <input type="text" id="nome" name="nome" placeholder="Nome completo" required>
       
@@ -14,16 +16,29 @@
       <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required minlength="6">
       
       <label for="perfil">Perfil</label>
-      <select id="perfil" name="perfil" required onchange="toggleEspecialidades()">
+      <select id="perfil" name="perfil" required onchange="toggleCamposProfissional()">
         <option value="">Selecione o perfil</option>
         <option value="cliente">Cliente</option>
         <option value="profissional">Profissional</option>
         <option value="admin">Administrador</option>
       </select>
       
-      <div id="especialidades-container" style="display: none;">
+      <div id="especialidades-container" style="display: none; margin-top: .5rem;">
         <label for="especialidades">Especialidades</label>
-        <input type="text" id="especialidades" name="especialidades" placeholder="Ex: Corte, Coloração, Manicure">
+        <input type="text" id="especialidades" name="especialidades"
+               placeholder="Ex: Corte, Coloração, Manicure">
+      </div>
+
+      <!-- Foto de perfil (apenas profissional) -->
+      <div id="foto-perfil-container" style="display: none; margin-top: .5rem;">
+        <label for="foto_perfil">Foto de perfil</label>
+        <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*">
+        <div style="margin-top: .5rem;">
+          <img id="preview_foto"
+               src="{{ url_for('static', filename='img/default-user.png') }}"
+               alt="Pré-visualização da foto"
+               style="max-width: 120px; border-radius: 50%;">
+        </div>
       </div>
       
       <button type="submit">Criar Usuário</button>
@@ -32,17 +47,37 @@
   </div>
 
   <script>
-    function toggleEspecialidades() {
+    function toggleCamposProfissional() {
       const perfil = document.getElementById('perfil').value;
-      const container = document.getElementById('especialidades-container');
+      const espContainer = document.getElementById('especialidades-container');
+      const fotoContainer = document.getElementById('foto-perfil-container');
+      const espInput = document.getElementById('especialidades');
+
       if (perfil === 'profissional') {
-        container.style.display = 'block';
-        document.getElementById('especialidades').required = true;
+        espContainer.style.display = 'block';
+        fotoContainer.style.display = 'block';
+        espInput.required = true;
       } else {
-        container.style.display = 'none';
-        document.getElementById('especialidades').required = false;
+        espContainer.style.display = 'none';
+        fotoContainer.style.display = 'none';
+        espInput.required = false;
       }
+    }
+
+    // Pré-visualização da foto
+    const inputFoto = document.getElementById('foto_perfil');
+    const preview   = document.getElementById('preview_foto');
+
+    if (inputFoto) {
+      inputFoto.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
     }
   </script>
 {% endblock %}
-

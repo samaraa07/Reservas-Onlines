@@ -3,7 +3,9 @@
 {% block content %}
   <div class="container">
     <h2>Cadastro (Admin / Profissional)</h2>
-    <form method="post" action="{{ url_for('cadastro_restrito') }}">
+    <form method="post"
+          action="{{ url_for('cadastro_restrito') }}"
+          enctype="multipart/form-data">
       <input type="text" name="nome" placeholder="Nome" required>
       <input type="email" name="email" placeholder="Email" required>
       <input type="password" name="senha" placeholder="Senha" required>
@@ -24,15 +26,15 @@
       <!-- Foto de perfil (apenas profissional) -->
       <div id="foto_perfil_group" style="display:none; margin-top: 0.5rem;">
         <label for="foto_perfil">Foto de perfil</label>
-        <select id="foto_perfil" name="foto_perfil">
-          <option value="">Selecione uma imagem</option>
-          <option value="profissional1.png">Profissional 1</option>
-          <option value="profissional2.png">Profissional 2</option>
-          <option value="profissional3.png">Profissional 3</option>
-          <option value="profissional4.png">Profissional 4</option>
-          <option value="profissional5.png">Profissional 5</option>
-          <option value="profissional6.png">Profissional 6</option>
-        </select>
+        <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*">
+
+        <!-- Pré-visualização -->
+        <div style="margin-top: 0.5rem;">
+          <img id="preview_foto"
+               src="{{ url_for('static', filename='img/default-user.png') }}"
+               alt="Pré-visualização da foto"
+               style="max-width: 120px; border-radius: 50%;">
+        </div>
       </div>
 
       <button type="submit">Cadastrar</button>
@@ -46,8 +48,11 @@
 
   <script>
     const selectTipo = document.getElementById('tipo_user');
-    const espGroup = document.getElementById('especialidades_group');
-    const fotoGroup = document.getElementById('foto_perfil_group');
+    const espGroup   = document.getElementById('especialidades_group');
+    const fotoGroup  = document.getElementById('foto_perfil_group');
+
+    const inputFoto  = document.getElementById('foto_perfil');
+    const preview    = document.getElementById('preview_foto');
 
     selectTipo.addEventListener('change', function () {
       if (this.value === 'profissional') {
@@ -57,6 +62,18 @@
         espGroup.style.display = 'none';
         fotoGroup.style.display = 'none';
       }
+    });
+
+    // Pré-visualização da imagem escolhida
+    inputFoto.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     });
   </script>
 {% endblock %}
