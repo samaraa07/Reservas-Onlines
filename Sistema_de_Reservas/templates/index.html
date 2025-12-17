@@ -74,7 +74,15 @@
         {% for prof in profissionais %}
           <article class="card-medico">
             <div class="card-foto">
-              <img src="{{ url_for('static', filename='imgs/perfil.png') }}" alt="Perfil" style="width: 5000px; height: 5000px; border-radius: 10px; ">
+              {% if prof.foto_perfil %}
+                <img src="{{ url_for('static', filename='imgs/' + prof.foto_perfil) }}" 
+                     alt="{{ prof.user.nome }}" 
+                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+              {% else %}
+                <img src="{{ url_for('static', filename='imgs/perfil.png') }}" 
+                     alt="Perfil Padrão" 
+                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+              {% endif %}
             </div>
             <div class="card-conteudo">
               <h2>{{ prof.user.nome|upper }}</h2>
@@ -82,9 +90,9 @@
               <p>
                 Serviços:
                 {% if prof.servicos %}
-                  {{ prof.servicos|map(attribute='nome')|join(', ') }}
-                {% else %}
-                  Nenhum serviço cadastrado ainda.
+                    {{ prof.servicos|map(attribute='nome')|join(', ') }}
+                  {% else %}
+                    Nenhum serviço cadastrado ainda.
                 {% endif %}
               </p>
             </div>
@@ -97,9 +105,9 @@
 
   <!-- Rodapé -->
   <div class="landing-footer">
-    <p>© 2025 Sistema de Reservas Online</p>
+    <p>©️ 2025 Sistema de Reservas Online</p>
     <p>
-      <a href="{{ url_for('login_restrito') }}">Área restrita</a>
+      <a href="{{ url_for('login') }}">Área restrita</a>
     </p>
   </div>
 {% endblock %}

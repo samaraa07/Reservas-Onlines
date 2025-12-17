@@ -2,7 +2,8 @@ import os
 from flask import Flask
 from werkzeug.security import generate_password_hash
 from sqlalchemy import text  # necessário para usar comandos SQL diretos
-from models import db, User, Administrador
+# Importe todas para o SQLAlchemy mapear as relações corretamente
+from models import db, User, Cliente, Profissional, Servico, Agendamento, Notificacao, Administrador
 
 # ------------------------------------
 # Caminho do banco de dados
@@ -41,21 +42,21 @@ with app.app_context():
         ("Sthefany Dantas Brito", "sthefdantas@gmail.com", "5678"),
     ]
 
-    for nome, email, senha in admins_info:
+    for nome, email, senha_texto in admins_info:
         user = User(
             nome=nome,
             email=email,
-            senha_hash=generate_password_hash(senha),
+            senha_hash=generate_password_hash(senha_texto), # Mudado de 'senha' para 'senha_hash'
             perfil='admin',
-            is_ativo=True  # admins padrão já ativos
+            is_ativo=True
         )
         db.session.add(user)
-        db.session.commit()  # precisa para gerar o usu_id
+        db.session.commit() # Gera o ID para o Administrador abaixo
 
         admin = Administrador(
-            user_id=user.id,   # usa o atributo mapeado (usu_id)
+            user_id=user.id,
             nivel_acesso='geral',
-            status='aprovado'  # admins padrão já aprovados
+            status='aprovado'
         )
         db.session.add(admin)
 

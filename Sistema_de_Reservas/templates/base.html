@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -23,14 +23,25 @@
             </button>
 
             <div class="nav-links" id="nav-links">
-                <a href="{{ url_for('reservar') }}">Reservar</a>
-                <a href="{{ url_for('minhas_reservas') }}">Minhas Reservas</a>
-                
-                <div class="user-info">
-                    <span>Olá, <strong>{{ user.nome }}</strong>!</span>
-                    <span class="user-role">({{ user.role|capitalize }})</span>
-                </div>
-                <a href="{{ url_for('logout') }}" class="logout-btn">Sair</a>
+                {% if user %}
+                    {# MENU COMUM PARA LOGADOS #}
+                    {% if user.perfil == 'cliente' %}
+                        <a href="{{ url_for('reservar') }}">Reservar</a>
+                    {% elif user.perfil == 'profissional' %}
+                        <a href="{{ url_for('dashboard_profissional') }}">Dashboard</a>
+                    {% elif user.perfil == 'admin' %}
+                        <a href="{{ url_for('dashboard_admin') }}">Painel Admin</a>
+                    {% endif %}
+
+                    {# INFO USUÁRIO #}
+                    <div class="user-info">
+                        <span>Olá, <strong>{{ user.nome }}</strong>!</span>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Sair</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Entrar</a>
+                    <a href="{{ url_for('register_cliente') }}">Cadastrar</a>
+                {% endif %}
             </div>
         </nav>
     </header>
@@ -50,6 +61,5 @@
     </main>
 
     <script src="{{ url_for('static', filename='js/menu.js') }}"></script>
-    
 </body>
 </html>

@@ -1,17 +1,20 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_login import UserMixin
 
 
 db = SQLAlchemy()
 
 
-class User(db.Model):
-    __tablename__ = 'tb_usuarios'
+class User(db.Model, UserMixin):
+    __tablename__ = 'tb_usuarios' # Importante para a chave estrangeira funcionar
 
     id = db.Column('usu_id', db.Integer, primary_key=True)
-    nome = db.Column('usu_nome', db.String(200), nullable=False)
-    email = db.Column('usu_email', db.String(200), unique=True, nullable=False)
-    senha_hash = db.Column('usu_senha', db.String(200), nullable=False)
+    nome = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    
+    # ATENÇÃO AQUI: Mudamos para senha_hash para bater com o padrão que você está usando
+    senha_hash = db.Column('usu_senha', db.String(200), nullable=False) 
 
     perfil = db.Column(
         'usu_tipo',
@@ -20,32 +23,13 @@ class User(db.Model):
         default='cliente'
     )
 
-    # controla se o usuário está habilitado a logar
     is_ativo = db.Column('usu_ativo', db.Boolean, nullable=False, default=True)
 
-    cliente = db.relationship(
-        'Cliente',
-        uselist=False,
-        back_populates='user',
-        cascade='all, delete-orphan'
-    )
-    profissional = db.relationship(
-        'Profissional',
-        uselist=False,
-        back_populates='user',
-        cascade='all, delete-orphan'
-    )
-    administrador = db.relationship(
-        'Administrador',
-        uselist=False,
-        back_populates='user',
-        cascade='all, delete-orphan'
-    )
-    notificacoes = db.relationship(
-        'Notificacao',
-        back_populates='user',
-        cascade='all, delete-orphan'
-    )
+    # Relacionamentos (mantenha como estão, mas certifique-se que o back_populates bate)
+    cliente = db.relationship('Cliente', uselist=False, back_populates='user', cascade='all, delete-orphan')
+    profissional = db.relationship('Profissional', uselist=False, back_populates='user', cascade='all, delete-orphan')
+    administrador = db.relationship('Administrador', uselist=False, back_populates='user', cascade='all, delete-orphan')
+    notificacoes = db.relationship('Notificacao', back_populates='user', cascade='all, delete-orphan')
 
 
 class Administrador(db.Model):
