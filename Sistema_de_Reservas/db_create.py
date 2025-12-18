@@ -4,13 +4,18 @@ from werkzeug.security import generate_password_hash
 from sqlalchemy import text  # necessário para usar comandos SQL diretos
 from models import db, User, Administrador
 
+
 # ------------------------------------
 # Caminho do banco de dados
 # ------------------------------------
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, 'banco_de_dados', 'salon_reservas.db')
 
-print(f"Verificando banco em: {db_path}")
+print(f"Usando banco em: {db_path}")
+
+# Garante que a pasta existe
+os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
 
 # ------------------------------------
 # Configuração do app Flask
@@ -20,18 +25,22 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
+
 # ------------------------------------
-# Criação e população do banco
+# Criação e população do banco (sem apagar)
 # ------------------------------------
 with app.app_context():
-    print("Limpando tabelas existentes...")
-    if os.path.exists(db_path):
-        os.remove(db_path)
+    # NÃO apagar o arquivo existente: isso destruía todos os dados
+    if not os.path.exists(db_path):
+        print("Banco não existe ainda. Será criado.")
+    else:
+        print("Banco já existe. Tabelas serão verificadas/criadas se necessário.")
 
+    # Cria tabelas se não existirem
     db.create_all()
 
-    # Criar administradores padrão
-    print("Criando administradores padrão...")
+    # Criar administradores padrão somente se não existirem
+    print("Verificando/criando administradores padrão...")
 
     admins_info = [
         ("Ana Francisca de Araújo Pereira", "anafrancisca@gmail.com", "1234"),
@@ -41,7 +50,12 @@ with app.app_context():
         ("Sthefany Dantas Brito", "sthefdantas@gmail.com", "5678"),
     ]
 
+    criados = 0
     for nome, email, senha in admins_info:
+        # se já existe um usuário com esse email, pula
+        if User.query.filter_by(email=email).first():
+            continue
+
         user = User(
             nome=nome,
             email=email,
@@ -50,23 +64,26 @@ with app.app_context():
             is_ativo=True  # admins padrão já ativos
         )
         db.session.add(user)
-        db.session.commit()  # precisa para gerar o usu_id
+        db.session.commit()  # precisa para gerar o user.id
 
         admin = Administrador(
-            user_id=user.id,   # usa o atributo mapeado (usu_id)
+            user_id=user.id,
             nivel_acesso='geral',
             status='aprovado'  # admins padrão já aprovados
         )
         db.session.add(admin)
+        criados += 1
 
     db.session.commit()
-    print("Administradores padrão criados com sucesso!\n")
+    print(f"Administradores padrão verificados. Novos criados: {criados}\n")
 
     # ------------------------------------
     # Mostrar tabelas e conteúdo
     # ------------------------------------
     print("Tabelas existentes:")
-    tabelas = db.session.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
+    tabelas = db.session.execute(
+        text("SELECT name FROM sqlite_master WHERE type='table';")
+    ).fetchall()
     for t in tabelas:
         print(" -", t[0])
 
@@ -94,4 +111,4 @@ with app.app_context():
     else:
         print("Nenhum administrador encontrado.")
 
-    print("\nBanco reinicializado e populado com administradores padrão.")
+    print("\nBanco verificado. Tabelas criadas (se necessário) e admins padrão garantidos.")

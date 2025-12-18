@@ -9,6 +9,16 @@
       <p class="dashboard-subtitle">Gerencie todos os seus agendamentos</p>
     </div>
 
+    {# Botões de navegação rápidos #}
+    <div class="quick-actions" style="margin-bottom: 20px;">
+      <a href="{{ url_for('reservar') }}" class="btn btn-primary">
+        ➕ Fazer Nova Reserva
+      </a>
+      <a href="{{ url_for('dashboard_cliente') }}" class="btn btn-secondary">
+        ⬅ Voltar ao Painel do Cliente
+      </a>
+    </div>
+
     {% if agendamentos %}
       <div class="appointments-list">
         {% for a in agendamentos %}

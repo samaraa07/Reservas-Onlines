@@ -26,13 +26,17 @@ def create_app():
     os.makedirs(upload_folder, exist_ok=True)
     app.config['UPLOAD_FOLDER'] = upload_folder
 
-    # Flask-Mail
-    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
-    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
-    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
-    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+    # -------------------------
+    # Flask-Mail / Gmail
+    # -------------------------
+    # Configuração fixa para o e-mail do sistema
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = 'sistemareservas13@gmail.com'
+    # senha de app do Google SEM espaços
+    app.config['MAIL_PASSWORD'] = 'wrhnhuufyjaynhlb'
+    app.config['MAIL_DEFAULT_SENDER'] = 'sistemareservas13@gmail.com'
 
     db.init_app(app)
     return app
@@ -52,6 +56,7 @@ def allowed_file(filename):
 def enviar_email(destinatario, assunto, corpo_html, corpo_texto=None):
     """Envia um e-mail. Retorna True se sucesso, False caso contrário."""
     try:
+        # Se MAIL_USERNAME ou MAIL_PASSWORD não estão configurados, apenas simula o envio
         if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
             print(f"[EMAIL SIMULADO] Para: {destinatario}, Assunto: {assunto}")
             print(f"[EMAIL SIMULADO] Corpo: {corpo_texto or corpo_html}")
@@ -554,7 +559,11 @@ def dashboard_profissional():
     agora = datetime.now()
     hoje = datetime.now().date()
     agendamentos_hoje = [a for a in ags if a.data_hora.date() == hoje and a.status != 'cancelado']
-    agendamentos_semana = [a for a in ags if a.data_hora.date() >= hoje and a.data_hora.date() <= hoje + timedelta(days=7) and a.status != 'cancelado']
+    agendamentos_semana = [
+        a for a in ags
+        if a.data_hora.date() >= hoje and a.data_hora.date() <= hoje + timedelta(days=7)
+        and a.status != 'cancelado'
+    ]
     pendentes = [a for a in ags if a.status == 'pendente']
     confirmados = [a for a in ags if a.status == 'confirmado']
     proximos = [a for a in ags if a.data_hora > agora and a.status != 'cancelado'][:5]
@@ -652,7 +661,10 @@ def reservar():
 
         profissional = Profissional.query.get(profissional_id)
         if profissional:
-            reservamensagem = f"Novo agendamento pendente de {u.nome} para {servico.nome} em {dt.strftime('%d/%m/%Y %H:%M')}."
+            reservamensagem = (
+                f"Novo agendamento pendente de {u.nome} para {servico.nome} em "
+                f"{dt.strftime('%d/%m/%Y %H:%M')}."
+            )
             notifprof = Notificacao(
                 user_id=profissional.user.id,
                 mensagem=reservamensagem,
@@ -996,11 +1008,11 @@ def editar_usuario(user_id):
     utarget = User.query.get_or_404(user_id)
 
     adminspadraoemails = [
-        "anafranciscagmail.com",
-        "estelaaureagmail.com",
-        "mariajesusgmail.com",
-        "samarafernandagmail.com",
-        "sthefdantasgmail.com",
+        "anafrancisca@gmail.com",
+        "estelaaurea@gmail.com",
+        "mariajesus@gmail.com",
+        "samarafernanda@gmail.com",
+        "sthefdantas@gmail.com",
     ]
     if utarget.email in adminspadraoemails:
         flash("Não é possível editar administradores padrão.", "warning")
@@ -1037,11 +1049,11 @@ def editar_usuario(user_id):
 def excluir_usuario(user_id):
     utarget = User.query.get_or_404(user_id)
     adminspadraoemails = [
-        "anafranciscagmail.com",
-        "estelaaureagmail.com",
-        "mariajesusgmail.com",
-        "samarafernandagmail.com",
-        "sthefdantasgmail.com",
+        "anafrancisca@gmail.com",
+        "estelaaurea@gmail.com",
+        "mariajesus@gmail.com",
+        "samarafernanda@gmail.com",
+        "sthefdantas@gmail.com",
     ]
     if utarget.email in adminspadraoemails:
         flash("Não é possível excluir administradores padrão.", "warning")
@@ -1059,11 +1071,11 @@ def excluir_usuario(user_id):
 @exige_admin
 def limpar_usuarios():
     adminspadraoemails = [
-        "anafranciscagmail.com",
-        "estelaaureagmail.com",
-        "mariajesusgmail.com",
-        "samarafernandagmail.com",
-        "sthefdantasgmail.com",
+        "anafrancisca@gmail.com",
+        "estelaaurea@gmail.com",
+        "mariajesus@gmail.com",
+        "samarafernanda@gmail.com",
+        "sthefdantas@gmail.com",
     ]
     usuarios_para_apagar = User.query.filter(~User.email.in_(adminspadraoemails)).all()
     for u in usuarios_para_apagar:
