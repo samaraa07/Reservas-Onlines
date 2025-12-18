@@ -91,14 +91,18 @@
                                 ] %}
 
                                 <div class="d-flex gap-1 flex-wrap">
-                                    <!-- Botão Editar -->
+                                    <!-- Botão Editar (oculto para admins padrão) -->
+                                    {% if not is_admin_padrao %}
                                     <a href="{{ url_for('editar_usuario', user_id=u.id) }}" class="btn btn-sm btn-primary" title="Editar">
                                         ✏️ Editar
                                     </a>
+                                    {% endif %}
 
                                     <!-- Botão Excluir (exceto admins padrão) -->
                                     {% if not is_admin_padrao %}
-                                    <form method="post" action="{{ url_for('excluir_usuario', user_id=u.id) }}" style="display: inline;" 
+                                    <form method="post"
+                                          action="{{ url_for('excluir_usuario', user_id=u.id) }}"
+                                          style="display: inline;"
                                           onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ u.nome }}? Esta ação não pode ser desfeita.');">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Excluir">
                                             🗑️ Excluir
